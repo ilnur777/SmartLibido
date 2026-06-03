@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartLibido v0.6.0 (Partnership)</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF; --text-main: #241F2E; --text-sec: #7A7285; --border: #EEE7F1; --accent: #FF8BA7; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: var(--surface); padding: 20px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; position: relative; }
+        .hidden { display: none !important; }
+        
+        .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .preview-box { background: #f9f7ff; border: 1px dashed var(--primary); padding: 15px; border-radius: 16px; margin-top: 20px; text-align: left; }
+        .preview-box h3 { font-size: 14px; color: var(--primary); margin-top: 0; }
+        .nav-btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; width: 100%; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        .btn-sec { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+    </style>
+</head>
+<body>
+    <div id="screen-main" class="card">
+        <h1>SmartLibido</h1>
+        <div id="status">Загрузка...</div>
+        <button class="nav-btn" onclick="showScreen('screen-sharing')">💞 Партнерство</button>
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-calendar')">📅 Календарь</button>
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-checkin')">📝 Чек-ин</button>
+    </div>
+
+    <!-- ЭКРАН ШЕРИНГА (6.7) -->
+    <div id="screen-sharing" class="card hidden">
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-main')">← Назад</button>
+        <h2>Настройки шеринга</h2>
+        <p style="font-size:12px;">Выберите, что увидит партнер:</p>
+        
+        <div class="switch-row"><span>Общий статус дня</span><label class="switch"><input type="checkbox" checked onchange="updatePreview()"><span class="slider"></span></label></div>
+        <div class="switch-row"><span>Уровень энергии</span><label class="switch"><input type="checkbox" id="sh-energy" onchange="updatePreview()"><span class="slider"></span></label></div>
+        <div class="switch-row"><span>Настроение</span><label class="switch"><input type="checkbox" id="sh-mood" onchange="updatePreview()"><span class="slider"></span></label></div>
+        <div class="switch-row"><span>Фаза цикла</span><label class="switch"><input type="checkbox" id="sh-phase" onchange="updatePreview()"><span class="slider"></span></label></div>
+
+        <div class="preview-box">
+            <h3>Предпросмотр для партнера</h3>
+            <div id="preview-content">Сегодня может быть день с большим ресурсом и теплом. ✨</div>
+        </div>
+
+        <button class="nav-btn" style="margin-top:20px;" onclick="tg.showConfirm('Создать ссылку для жены?', (v)=>{if(v) tg.showAlert('Ссылка: t.me/SmartLibidoBot?start=invite123')})">Создать ссылку-приглашение</button>
+    </div>
+
+    <div id="screen-calendar" class="card hidden">
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-main')">← Назад</button>
+        <div id="calendar" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:5px;"></div>
+    </div>
+
+    <div id="screen-checkin" class="card hidden">
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-main')">← Назад</button>
+        <p>Состояние записано. (Версия 0.6.0)</p>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        function showScreen(id) {
+            document.querySelectorAll('body > div').forEach(d => d.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function updatePreview() {
+            const energy = document.getElementById('sh-energy').checked;
+            const mood = document.getElementById('sh-mood').checked;
+            let text = "Сегодня может быть день с большим ресурсом и теплом. ✨";
+            if(energy) text += "<br>🔋 Ресурс: Высокий";
+            if(mood) text += "<br>😍 Настроение: Отличное";
+            document.getElementById('preview-content').innerHTML = text;
+        }
+
+        // Рендер календаря (упрощенно)
+        const grid = document.getElementById('calendar');
+        for(let i=1; i<=30; i++) {
+            let d = document.createElement('div');
+            d.style = "padding:10px; border:1px solid #eee; border-radius:8px; font-size:10px;";
+            d.innerText = i;
+            if(i<=5) d.style.background = "#FFDDE4";
+            grid.appendChild(d);
+        }
+
+        document.getElementById('status').innerText = '11-й день цикла';
+    </script>
+</body>
+</html>
