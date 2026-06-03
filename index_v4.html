@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartLibido MVP v0.4.0 (Super-App)</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF;
+            --text-main: #241F2E; --text-sec: #7A7285; --border: #EEE7F1;
+            --accent: #FF8BA7;
+        }
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; min-height: 100vh; align-items: center; box-sizing: border-box; }
+        .card { background: var(--surface); padding: 20px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 16px; box-sizing: border-box; }
+        h1 { color: var(--primary); font-size: 22px; margin-bottom: 8px; }
+        h2 { font-size: 18px; margin-bottom: 15px; text-align: left; }
+        p { font-size: 14px; line-height: 1.5; color: var(--text-sec); margin-bottom: 15px; }
+        .hidden { display: none !important; }
+        
+        .status-pill { background: #EEE8FF; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 16px; display: inline-block; }
+        .phase-badge { color: var(--accent); font-weight: bold; font-size: 18px; margin: 10px 0; }
+        .score-box { font-size: 48px; margin: 10px 0; }
+        
+        .section-label { text-align: left; font-size: 12px; font-weight: bold; margin: 20px 0 8px 0; color: var(--text-sec); display: block; }
+
+        .checkin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .emoji-btn { background: #fdfdfd; border: 1px solid var(--border); border-radius: 16px; padding: 10px; font-size: 24px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .emoji-btn span { font-size: 10px; color: var(--text-sec); font-weight: normal; }
+        .emoji-btn.active { border-color: var(--primary); background: #f5f0ff; transform: scale(1.05); }
+
+        .needs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .need-btn { background: #fdfdfd; border: 1px solid var(--border); border-radius: 12px; padding: 10px; font-size: 13px; cursor: pointer; text-align: center; }
+        .need-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        button.primary-btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .btn-outline { background: transparent; color: var(--text-sec); border: 1px solid var(--border); margin-top: 30px; font-size: 12px; padding: 8px; border-radius: 10px; width: auto; }
+    </style>
+</head>
+<body>
+
+    <div id="screen-main" style="width:100%; max-width:400px;">
+        <div class="card">
+            <div class="status-pill">● ПРИВАТНО</div>
+            <div id="today-day" style="font-size: 14px; color: var(--text-sec);">Загрузка...</div>
+            <div id="today-phase" class="phase-badge">...</div>
+            <div id="today-score" class="score-box">🌤</div>
+            <p id="today-hint">Загружаем данные цикла...</p>
+        </div>
+
+        <div class="card">
+            <h2>Ежедневный чек-ин</h2>
+            
+            <span class="section-label">Либидо</span>
+            <div class="checkin-grid" id="grid-libido">
+                <div class="emoji-btn" onclick="checkIn('libido', 'high', this)">🔥<span>Высокое</span></div>
+                <div class="emoji-btn" onclick="checkIn('libido', 'mid', this)">🌤<span>Среднее</span></div>
+                <div class="emoji-btn" onclick="checkIn('libido', 'low', this)">🌙<span>Низкое</span></div>
+            </div>
+
+            <span class="section-label">Энергия</span>
+            <div class="checkin-grid" id="grid-energy">
+                <div class="emoji-btn" onclick="checkIn('energy', 'high', this)">🔋<span>Много</span></div>
+                <div class="emoji-btn" onclick="checkIn('energy', 'mid', this)">⚡<span>Норм</span></div>
+                <div class="emoji-btn" onclick="checkIn('energy', 'low', this)">🪫<span>Мало</span></div>
+            </div>
+
+            <span class="section-label">Сон</span>
+            <div class="checkin-grid" id="grid-sleep">
+                <div class="emoji-btn" onclick="checkIn('sleep', 'good', this)">😴<span>Выспалась</span></div>
+                <div class="emoji-btn" onclick="checkIn('sleep', 'mid', this)">😐<span>Нормально</span></div>
+                <div class="emoji-btn" onclick="checkIn('sleep', 'bad', this)">🥱<span>Плохо</span></div>
+            </div>
+
+            <span class="section-label">Стресс</span>
+            <div class="checkin-grid" id="grid-stress">
+                <div class="emoji-btn" onclick="checkIn('stress', 'low', this)">🟢<span>Низкий</span></div>
+                <div class="emoji-btn" onclick="checkIn('stress', 'mid', this)">🟡<span>Средний</span></div>
+                <div class="emoji-btn" onclick="checkIn('stress', 'high', this)">🔴<span>Высокий</span></div>
+            </div>
+
+            <span class="section-label">Потребность сегодня</span>
+            <div class="needs-grid" id="grid-needs">
+                <div class="need-btn" onclick="toggleNeed('🤗 Нежность', this)">🤗 Нежность</div>
+                <div class="need-btn" onclick="toggleNeed('🧘 Покой', this)">🧘 Покой</div>
+                <div class="need-btn" onclick="toggleNeed('💬 Разговор', this)">💬 Разговор</div>
+                <div class="need-btn" onclick="toggleNeed('🛌 Отдых', this)">🛌 Отдых</div>
+                <div class="need-btn" onclick="toggleNeed('💞 Близость', this)">💞 Близость</div>
+                <div class="need-btn" onclick="toggleNeed('🚫 Пространство', this)">🚫 Пространство</div>
+            </div>
+
+            <button class="primary-btn" onclick="saveCheckin()">Сохранить показатели</button>
+        </div>
+
+        <button class="btn-outline" onclick="resetApp()">Сбросить всё (Онбординг)</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        let slData = JSON.parse(localStorage.getItem('sl_data'));
+        let daily = { needs: [] };
+
+        function init() {
+            if (!slData) {
+                // Если данных нет, вернем на index_v3 для онбординга
+                window.location.href = 'index_v3.html';
+                return;
+            }
+            calculateStatus();
+        }
+
+        function calculateStatus() {
+            const start = new Date(slData.date);
+            const now = new Date();
+            const diffDays = Math.ceil(Math.abs(now - start) / (1000 * 60 * 60 * 24));
+            const cycleDay = (diffDays % slData.len) || 1;
+            
+            document.getElementById('today-day').innerText = cycleDay + '-й день цикла';
+            
+            let phase = 'Фолликулярная фаза';
+            let emoji = '🌤';
+            let hint = 'Удачное время для новых идей и активности.';
+
+            if (cycleDay <= 5) {
+                phase = 'Менструация'; emoji = '🌙'; hint = 'Берегите себя, больше отдыхайте.';
+            } else if (cycleDay >= 12 && cycleDay <= 16) {
+                phase = 'Овуляция'; emoji = '🔥'; hint = 'Пик энергии! Идеально для близости.';
+            } else if (cycleDay > 16) {
+                phase = 'Лютеиновая фаза'; emoji = '🧘'; hint = 'Ресурс может снижаться. Будьте к себе мягче.';
+            }
+
+            document.getElementById('today-phase').innerText = phase;
+            document.getElementById('today-score').innerText = emoji;
+            document.getElementById('today-hint').innerText = hint;
+        }
+
+        function checkIn(type, val, el) {
+            el.parentElement.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            daily[type] = val;
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function toggleNeed(val, el) {
+            el.classList.toggle('active');
+            if (daily.needs.includes(val)) {
+                daily.needs = daily.needs.filter(n => n !== val);
+            } else {
+                daily.needs.push(val);
+            }
+            tg.HapticFeedback.selectionChanged();
+        }
+
+        function saveCheckin() {
+            localStorage.setItem('last_checkin', JSON.stringify(daily));
+            tg.showPopup({ 
+                title: 'Сохранено', 
+                message: 'Твои показатели за сегодня учтены. Данные остаются на твоем устройстве.', 
+                buttons: [{type: 'ok'}] 
+            });
+        }
+
+        function resetApp() {
+            if(confirm('Это удалит данные твоего цикла. Уверен?')) {
+                localStorage.clear();
+                window.location.href = 'index_v3.html';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
