@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang='ru'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
+    <title>SmartLibido MVP</title>
+    <script src='https://telegram.org/js/telegram-web-app.js'></script>
+    <style>
+        :root {
+            --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF;
+            --text-main: #241F2E; --text-sec: #7A7285; --accent: #FF8BA7;
+            --border: #EEE7F1;
+        }
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: flex-start; box-sizing: border-box; }
+        .card { background: var(--surface); padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
+        h1 { color: var(--primary); font-size: 24px; margin-bottom: 12px; }
+        p { font-size: 15px; line-height: 1.5; color: var(--text-sec); margin-bottom: 20px; }
+        .hidden { display: none; }
+        .input-group { text-align: left; margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: var(--text-main); }
+        input[type='date'] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 12px; box-sizing: border-box; font-size: 16px; font-family: inherit; }
+        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; justify-content: center; }
+        .chip { padding: 10px 16px; border: 1px solid var(--border); border-radius: 20px; font-size: 14px; cursor: pointer; transition: all 0.2s; background: white; }
+        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        button { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; }
+        button:disabled { opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <div id='screen-welcome' class='card'>
+        <h1>СмартЛибидо</h1>
+        <p>Помогает замечать, как меняется желание, настроение и энергия в течение цикла.<br><br>Все данные приватны.</p>
+        <button onclick='showPrivacy()'>Начать</button>
+    </div>
+
+    <div id='screen-privacy' class='card hidden'>
+        <h1>Приватность</h1>
+        <p style='font-size: 13px;'>Мы серьезно относимся к вашим данным.</p>
+        <div style='text-align: left; margin-bottom: 20px;'>
+            <label style='display: flex; gap: 10px; margin-bottom: 15px; align-items: center;'>
+                <input type='checkbox' id='check-age' onchange='validatePrivacy()' style='width: 20px; height: 20px;'> <span>Мне есть 18 лет</span>
+            </label>
+            <label style='display: flex; gap: 10px; margin-bottom: 15px; align-items: center;'>
+                <input type='checkbox' id='check-terms' onchange='validatePrivacy()' style='width: 20px; height: 20px;'> <span>Я согласна с условиями</span>
+            </label>
+            <label style='display: flex; gap: 10px; align-items: center;'>
+                <input type='checkbox' id='check-med' onchange='validatePrivacy()' style='width: 20px; height: 20px;'> <span>Это не медицинский сервис</span>
+            </label>
+        </div>
+        <button id='btn-privacy-next' disabled onclick='showCycleSetup()'>Продолжить</button>
+    </div>
+
+    <div id='screen-cycle' class='card hidden'>
+        <h1>Настройка цикла</h1>
+        <div class='input-group'>
+            <label>Дата последней менструации</label>
+            <input type='date' id='last-period-date'>
+        </div>
+        <div class='input-group'>
+            <label>Средняя длина цикла</label>
+            <div class='chips' id='cycle-chips'>
+                <div class='chip' onclick='setChip(\"cycle\", 24)'>24</div>
+                <div class='chip' onclick='setChip(\"cycle\", 26)'>26</div>
+                <div class='chip active' onclick='setChip(\"cycle\", 28)'>28</div>
+                <div class='chip' onclick='setChip(\"cycle\", 30)'>30</div>
+                <div class='chip' onclick='setChip(\"cycle\", 32)'>32</div>
+            </div>
+        </div>
+        <div class='input-group'>
+            <label>Длительность менструации</label>
+            <div class='chips' id='period-chips'>
+                <div class='chip' onclick='setChip(\"period\", 3)'>3</div>
+                <div class='chip' onclick='setChip(\"period\", 4)'>4</div>
+                <div class='chip active' onclick='setChip(\"period\", 5)'>5</div>
+                <div class='chip' onclick='setChip(\"period\", 6)'>6</div>
+                <div class='chip' onclick='setChip(\"period\", 7)'>7</div>
+            </div>
+        </div>
+        <p style='font-size: 12px; color: var(--text-sec); font-style: italic;'>Если цикл нерегулярный, прогноз будет примерным.</p>
+        <button id='btn-cycle-finish' onclick='finishOnboarding()'>Готово</button>
+    </div>
+
+    <script>
+        const webapp = window.Telegram.WebApp;
+        webapp.expand();
+        
+        let cycleData = { length: 28, period: 5, date: '' };
+
+        function showPrivacy() {
+            document.getElementById('screen-welcome').classList.add('hidden');
+            document.getElementById('screen-privacy').classList.remove('hidden');
+        }
+
+        function validatePrivacy() {
+            const age = document.getElementById('check-age').checked;
+            const terms = document.getElementById('check-terms').checked;
+            const med = document.getElementById('check-med').checked;
+            document.getElementById('btn-privacy-next').disabled = !(age && terms && med);
+        }
+
+        function showCycleSetup() {
+            document.getElementById('screen-privacy').classList.add('hidden');
+            document.getElementById('screen-cycle').classList.remove('hidden');
+        }
+
+        function setChip(type, value) {
+            const containerId = type === 'cycle' ? 'cycle-chips' : 'period-chips';
+            const chips = document.getElementById(containerId).querySelectorAll('.chip');
+            chips.forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            cycleData[type] = value;
+        }
+
+        function finishOnboarding() {
+            const dateInput = document.getElementById('last-period-date').value;
+            if (!dateInput) {
+                alert('Выберите дату начала последней менструации');
+                return;
+            }
+            cycleData.date = dateInput;
+            localStorage.setItem('cycle_setup', JSON.stringify(cycleData));
+            alert('Настройка завершена! В следующем обновлении — Главный экран.');
+        }
+    </script>
+</body>
+</html>
