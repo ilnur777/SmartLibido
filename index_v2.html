@@ -3,147 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartLibido MVP v0.2.3</title>
+    <title>SmartLibido MVP v0.3.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF;
             --text-main: #241F2E; --text-sec: #7A7285; --border: #EEE7F1;
+            --accent: #FF8BA7;
         }
-        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 20px; display: flex; flex-direction: column; min-height: 100vh; align-items: center; justify-content: flex-start; box-sizing: border-box; }
-        .card { background: var(--surface); padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
-        h1 { color: var(--primary); font-size: 24px; margin-bottom: 12px; }
-        p { font-size: 15px; line-height: 1.5; color: var(--text-sec); margin-bottom: 20px; }
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; min-height: 100vh; align-items: center; box-sizing: border-box; }
+        .card { background: var(--surface); padding: 20px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 16px; box-sizing: border-box; }
+        h1 { color: var(--primary); font-size: 22px; margin-bottom: 8px; }
         .hidden { display: none !important; }
-        .input-group { text-align: left; margin-bottom: 24px; }
-        label { display: block; margin-bottom: 10px; font-weight: 600; font-size: 14px; }
-        input[type="date"] { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 12px; font-size: 16px; background: white; -webkit-appearance: none; }
-        .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .chip { padding: 10px 18px; border: 1px solid var(--border); border-radius: 20px; font-size: 14px; cursor: pointer; background: white; transition: 0.2s; }
-        .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
-        button { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        button:disabled { opacity: 0.4; }
-        .check-row { display: flex; align-items: center; gap: 12px; margin-bottom: 15px; text-align: left; font-size: 14px; }
-        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--primary); }
+        
+        /* Стили главного экрана (6.4) */
+        .status-pill { background: #EEE8FF; color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 16px; display: inline-block; }
+        .phase-badge { color: var(--accent); font-weight: bold; font-size: 18px; margin: 10px 0; }
+        .score-box { font-size: 48px; margin: 10px 0; }
+        
+        /* Стили чек-ина (6.5) */
+        .checkin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .emoji-btn { background: #fdfdfd; border: 1px solid var(--border); border-radius: 16px; padding: 10px; font-size: 24px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .emoji-btn span { font-size: 10px; color: var(--text-sec); font-weight: normal; }
+        .emoji-btn.active { border-color: var(--primary); background: #f5f0ff; transform: scale(1.05); }
+        
+        button { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: bold; width: 100%; font-size: 16px; cursor: pointer; }
+        .btn-outline { background: transparent; color: var(--text-sec); border: 1px solid var(--border); margin-top: 10px; font-size: 14px; padding: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="screen-welcome" class="card">
-        <h1>СмартЛибидо</h1>
-        <p>Добро пожаловать. Помогает отслеживать цикл, энергию и либидо. <br><br><b>v0.2.3</b></p>
-        <button id="btn-start">Начать</button>
+    <!-- Экран Онбординга (скрыт если есть данные) -->
+    <div id="onboarding-flow" class="hidden">
+        <div id="screen-welcome" class="card">
+            <h1>СмартЛибидо</h1>
+            <p>v0.3.0</p>
+            <button onclick="showScreen('screen-privacy')">Начать</button>
+        </div>
+        <div id="screen-privacy" class="card hidden">
+            <h1>Приватность</h1>
+            <div style="text-align:left; margin-bottom:20px;">
+                <label style="display:flex; gap:10px; margin-bottom:10px;"><input type="checkbox" class="p-check"> 18+ лет</label>
+                <label style="display:flex; gap:10px; margin-bottom:10px;"><input type="checkbox" class="p-check"> Согласна с условиями</label>
+                <label style="display:flex; gap:10px;"><input type="checkbox" class="p-check"> Не медицина</label>
+            </div>
+            <button id="btn-p-next" disabled onclick="showScreen('screen-cycle')">Продолжить</button>
+        </div>
+        <div id="screen-cycle" class="card hidden">
+            <h1>Настройка</h1>
+            <input type="date" id="setup-date" style="width:100%; padding:12px; margin-bottom:20px; border-radius:12px; border:1px solid var(--border);">
+            <button onclick="saveSetup()">Готово</button>
+        </div>
     </div>
 
-    <div id="screen-privacy" class="card hidden">
-        <h1>Приватность</h1>
-        <div class="check-row">
-            <input type="checkbox" id="c1" class="privacy-check"> <span>Мне есть 18 лет</span>
+    <!-- ГЛАВНЫЙ ЭКРАН (6.4) -->
+    <div id="screen-main" class="hidden" style="width:100%; max-width:400px;">
+        <div class="card">
+            <div class="status-pill">● ПРИВАТНО</div>
+            <div id="today-day" style="font-size: 14px; color: var(--text-sec);">Загрузка...</div>
+            <div id="today-phase" class="phase-badge">Фолликулярная фаза</div>
+            <div id="today-score" class="score-box">🔥</div>
+            <p id="today-hint" style="font-size: 14px;">Сегодня может быть много энергии и желания!</p>
         </div>
-        <div class="check-row">
-            <input type="checkbox" id="c2" class="privacy-check"> <span>Я согласна с условиями</span>
-        </div>
-        <div class="check-row">
-            <input type="checkbox" id="c3" class="privacy-check"> <span>Это не мед. сервис</span>
-        </div>
-        <button id="btn-p" disabled>Продолжить</button>
-    </div>
 
-    <div id="screen-cycle" class="card hidden">
-        <h1>Настройка</h1>
-        <div class="input-group">
-            <label>Начало последних месячных</label>
-            <input type="date" id="last-date">
-        </div>
-        <div class="input-group">
-            <label>Длина цикла</label>
-            <div class="chips" id="c-len">
-                <div class="chip" data-val="24">24</div>
-                <div class="chip" data-val="26">26</div>
-                <div class="chip active" data-val="28">28</div>
-                <div class="chip" data-val="30">30</div>
-                <div class="chip" data-val="32">32</div>
+        <!-- БЫСТРЫЙ ЧЕК-ИН (6.5) -->
+        <div class="card">
+            <h2 style="font-size: 18px; margin-bottom: 15px;">Как вы сейчас?</h2>
+            
+            <p style="text-align:left; font-size:12px; margin-bottom:8px;">Либидо / Желание</p>
+            <div class="checkin-grid" id="grid-libido">
+                <div class="emoji-btn" onclick="checkIn('libido', 'high', this)">🔥<span>Высокое</span></div>
+                <div class="emoji-btn" onclick="checkIn('libido', 'mid', this)">🌤<span>Среднее</span></div>
+                <div class="emoji-btn" onclick="checkIn('libido', 'low', this)">🌙<span>Низкое</span></div>
+            </div>
+
+            <p style="text-align:left; font-size:12px; margin-top:20px; margin-bottom:8px;">Энергия</p>
+            <div class="checkin-grid" id="grid-energy">
+                <div class="emoji-btn" onclick="checkIn('energy', 'high', this)">🔋<span>Много</span></div>
+                <div class="emoji-btn" onclick="checkIn('energy', 'mid', this)">⚡<span>Норм</span></div>
+                <div class="emoji-btn" onclick="checkIn('energy', 'low', this)">🪫<span>Мало</span></div>
             </div>
         </div>
-        <button id="btn-save">Готово</button>
+
+        <button class="btn-outline" onclick="resetApp()">Сбросить настройки</button>
     </div>
 
     <script>
-        // Ждем полной загрузки DOM
-        document.addEventListener('DOMContentLoaded', function() {
-            const tg = window.Telegram.WebApp;
-            tg.expand();
-            tg.ready();
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-            console.log('DOM Loaded. SmartLibido v0.2.3');
+        let slData = JSON.parse(localStorage.getItem('sl_data'));
+        let daily = {};
 
-            let appData = { len: 28, date: '' };
-
-            function goToScreen(id) {
-                console.log('Switching to screen:', id);
-                document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
-                document.getElementById(id).classList.remove('hidden');
+        function init() {
+            if (!slData) {
+                document.getElementById('onboarding-flow').classList.remove('hidden');
+                showScreen('screen-welcome');
+            } else {
+                showMain();
             }
+        }
 
-            // Кнопка Начать
-            const btnStart = document.getElementById('btn-start');
-            if(btnStart) {
-                btnStart.addEventListener('click', function() {
-                    goToScreen('screen-privacy');
-                });
-            }
+        function showScreen(id) {
+            document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
 
-            // Чекбоксы
-            const checks = document.querySelectorAll('.privacy-check');
-            const btnP = document.getElementById('btn-p');
-            checks.forEach(input => {
-                input.addEventListener('change', function() {
-                    const allChecked = Array.from(checks).every(i => i.checked);
-                    btnP.disabled = !allChecked;
-                });
-            });
-
-            // Кнопка Продолжить
-            if(btnP) {
-                btnP.addEventListener('click', function() {
-                    goToScreen('screen-cycle');
-                });
-            }
-
-            // Чипы
-            const chipContainer = document.getElementById('c-len');
-            if(chipContainer) {
-                chipContainer.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('chip')) {
-                        chipContainer.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-                        e.target.classList.add('active');
-                        appData.len = parseInt(e.target.dataset.val);
-                    }
-                });
-            }
-
-            // Кнопка Готово
-            const btnSave = document.getElementById('btn-save');
-            if(btnSave) {
-                btnSave.addEventListener('click', function() {
-                    const selectedDate = document.getElementById('last-date').value;
-                    if(!selectedDate) {
-                        tg.showAlert('Укажите дату начала последних месячных');
-                        return;
-                    }
-                    appData.date = selectedDate;
-                    localStorage.setItem('sl_data', JSON.stringify(appData));
-                    
-                    tg.showPopup({ 
-                        title: 'Успех!', 
-                        message: 'Настройки сохранены. Теперь можно приступать к отслеживанию.', 
-                        buttons: [{type: 'ok'}] 
-                    }, function() {
-                        tg.close();
-                    });
-                });
-            }
+        // Логика чекбоксов
+        document.querySelectorAll('.p-check').forEach(i => {
+            i.onchange = () => {
+                const all = Array.from(document.querySelectorAll('.p-check')).every(c => c.checked);
+                document.getElementById('btn-p-next').disabled = !all;
+            };
         });
+
+        function saveSetup() {
+            const date = document.getElementById('setup-date').value;
+            if(!date) return alert('Укажите дату');
+            slData = { date: date, len: 28, period: 5 };
+            localStorage.setItem('sl_data', JSON.stringify(slData));
+            showMain();
+        }
+
+        function showMain() {
+            document.getElementById('onboarding-flow').classList.add('hidden');
+            document.getElementById('screen-main').classList.remove('hidden');
+            calculateStatus();
+        }
+
+        function calculateStatus() {
+            const start = new Date(slData.date);
+            const now = new Date();
+            const diffTime = Math.abs(now - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const cycleDay = (diffDays % slData.len) || 1;
+            
+            document.getElementById('today-day').innerText = cycleDay + '-й день цикла';
+            
+            // Базовый расчет фаз (упрощенно по PDF)
+            let phase = 'Фолликулярная фаза';
+            let emoji = '🌤';
+            let hint = 'Ресурс в норме. Время для планирования.';
+
+            if (cycleDay <= 5) {
+                phase = 'Менструация';
+                emoji = '🌙';
+                hint = 'Время для бережности и отдыха.';
+            } else if (cycleDay >= 12 && cycleDay <= 16) {
+                phase = 'Овуляция';
+                emoji = '🔥';
+                hint = 'Пик энергии и желания!';
+            } else if (cycleDay > 16) {
+                phase = 'Лютеиновая фаза';
+                emoji = '🧘';
+                hint = 'Замедляемся. Умеренная активность.';
+            }
+
+            document.getElementById('today-phase').innerText = phase;
+            document.getElementById('today-score').innerText = emoji;
+            document.getElementById('today-hint').innerText = hint;
+        }
+
+        function checkIn(type, val, el) {
+            const btns = el.parentElement.querySelectorAll('.emoji-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            daily[type] = val;
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function resetApp() {
+            if(confirm('Удалить все данные?')) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        init();
     </script>
 </body>
 </html>
