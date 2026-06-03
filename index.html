@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartLibido Project v1.0.0</title>
+    <title>SmartLibido MVP v1.0.1</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -15,9 +15,6 @@
             --text-sec: #7A7285;
             --border: #EEE7F1;
             --accent: #FF8BA7;
-            --success: #5FBF9F;
-            --warning: #F2B84B;
-            --danger: #E86A6A;
         }
         
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -51,67 +48,57 @@
         
         .hidden { display: none !important; }
 
-        /* Status & Phase styling */
         .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .status-pill { background: var(--primary-soft); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
         .phase-badge { color: var(--accent); font-weight: 800; font-size: 20px; margin: 12px 0 6px 0; }
-        .score-box { font-size: 56px; margin: 16px 0; filter: drop-shadow(0 4px 10px rgba(123,77,255,0.1)); }
+        .score-box { font-size: 56px; margin: 16px 0; }
         .hint-text { font-size: 14px; color: var(--text-sec); line-height: 1.6; background: #FFFDFD; padding: 12px; border-radius: 16px; border: 1px solid var(--border); }
 
-        /* Grids and Options */
         .section-label { text-align: left; font-size: 12px; font-weight: 800; margin: 24px 0 10px 0; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; display: block; }
         .checkin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .emoji-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 8px; font-size: 26px; cursor: pointer; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .emoji-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 8px; font-size: 26px; cursor: pointer; transition: all 0.25s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .emoji-btn span { font-size: 11px; color: var(--text-sec); font-weight: 600; }
-        .emoji-btn.active { border-color: var(--primary); background: var(--primary-soft); transform: scale(1.03); box-shadow: 0 6px 20px rgba(123,77,255,0.08); }
+        .emoji-btn.active { border-color: var(--primary); background: var(--primary-soft); transform: scale(1.03); }
         .emoji-btn.active span { color: var(--primary); }
 
         .needs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .need-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 8px; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; }
-        .need-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(123,77,255,0.15); }
+        .need-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 0; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
+        .need-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
-        /* Switch styling */
         .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600; }
         .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #E2DDF0; transition: .3s; border-radius: 30px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: var(--primary); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* Preview box */
         .preview-box { background: #FAF9FF; border: 1.5px dashed var(--primary); padding: 18px; border-radius: 20px; margin-top: 24px; text-align: left; }
-        .preview-box h3 { font-size: 13px; color: var(--primary); margin: 0 0 10px 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .preview-box h3 { font-size: 13px; color: var(--primary); margin: 0 0 10px 0; font-weight: 800; text-transform: uppercase; }
 
-        /* Calendar month styling */
         .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .weekday-label { font-size: 11px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; }
-        .day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border-radius: 12px; border: 1px solid var(--border); transition: all 0.2s; cursor: pointer; position: relative; background: var(--surface); }
+        .day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; position: relative; background: var(--surface); }
         .day.empty { border: none; background: transparent; cursor: default; }
-        .day.m { background: #FFE8EC; color: #FF4D77; border-color: #FFCCD5; } /* Менструация */
-        .day.o { background: #F1F0FF; color: var(--primary); border-color: #DCD8FF; } /* Овуляция */
+        .day.m { background: #FFE8EC; color: #FF4D77; border-color: #FFCCD5; }
+        .day.o { background: #F1F0FF; color: var(--primary); border-color: #DCD8FF; }
         .day.today { border: 2.5px solid var(--primary); font-weight: 800; }
-        .day .dot { width: 5px; height: 5px; background: var(--accent); border-radius: 50%; position: absolute; bottom: 4px; }
 
-        /* Navigation elements */
         .tab-bar { display: flex; gap: 8px; width: 100%; max-width: 400px; margin-top: 10px; }
-        button { font-family: inherit; font-size: 15px; font-weight: 700; border-radius: 16px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        button { font-family: inherit; font-size: 15px; font-weight: 700; border-radius: 16px; cursor: pointer; transition: all 0.2s; }
         .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; }
-        .btn-main:active { transform: scale(0.98); opacity: 0.9; }
         .btn-sub { background: var(--surface); color: var(--primary); border: 1px solid var(--primary); padding: 12px; flex: 1; }
         .btn-sub.active { background: var(--primary); color: white; }
 
-        /* Form elements */
         .form-group { text-align: left; margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
         input[type="date"] { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 14px; font-size: 16px; background: white; font-family: inherit; }
 
-        /* Modals and notifications */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
         .modal-content { background: white; border-radius: 24px; padding: 24px; width: 100%; max-width: 360px; text-align: center; }
 
-        .partner-view-header { background: #EEF8FF; color: #0077CC; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; margin-bottom: 20px; display: inline-block; letter-spacing: 0.5px; }
+        .partner-view-header { background: #EEF8FF; color: #0077CC; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; margin-bottom: 20px; display: inline-block; }
         .partner-status-msg { font-size: 16px; line-height: 1.6; font-weight: 600; margin: 16px 0; text-align: left; }
     </style>
 </head>
@@ -119,23 +106,19 @@
 
     <!-- ================= КАНАЛ ХОЗЯЙКИ (OWNER) ================= -->
     <div id="owner-app" class="hidden" style="width:100%; max-width:400px;">
-        
-        <!-- ЭКРАН 1: ГЛАВНЫЙ (MAIN) -->
         <div id="screen-main" class="card">
             <div class="status-header">
                 <h1>SmartLibido</h1>
                 <div class="status-pill">● Приватно</div>
             </div>
             <div id="today-cycle-day" style="font-size: 14px; color: var(--text-sec); font-weight: 700;">День цикла: ...</div>
-            <div id="today-phase" class="phase-badge">Фолликулярная фаза</div>
+            <div id="today-phase" class="phase-badge">...</div>
             <div id="today-score" class="score-box">🌤</div>
-            <div id="today-hint" class="hint-text">Загрузка прогноза...</div>
+            <div id="today-hint" class="hint-text">Загрузка...</div>
         </div>
 
-        <!-- ЭКРАН 2: РАСШИРЕННЫЙ ЧЕК-ИН (CHECKIN) -->
         <div id="screen-checkin" class="card hidden">
             <h2>Ежедневный самочек-ин</h2>
-            
             <span class="section-label">Желание / Либидо</span>
             <div class="checkin-grid" id="grid-libido">
                 <div class="emoji-btn" onclick="setDaily('libido', 'high', this)">🔥<span>Высокое</span></div>
@@ -173,47 +156,26 @@
                 <div class="need-btn" onclick="toggleNeed('💞 Близость', this)">💞 Близость</div>
                 <div class="need-btn" onclick="toggleNeed('🚫 Пространство', this)">🚫 Свобода</div>
             </div>
-
             <button class="btn-main" style="margin-top: 24px;" onclick="saveCheckIn()">Сохранить чек-ин</button>
         </div>
 
-        <!-- ЭКРАН 3: ИНТЕРАКТИВНЫЙ КАЛЕНДАРЬ (CALENDAR) -->
         <div id="screen-calendar" class="card hidden">
             <div class="calendar-header">
                 <h2 style="margin:0;">Цикловой календарь</h2>
-                <div style="font-size:13px; font-weight:700; color:var(--primary);" id="cal-month-name">Май / Июнь</div>
+                <div style="font-size:13px; font-weight:700; color:var(--primary);" id="cal-month-name">...</div>
             </div>
-            <div class="calendar-grid" id="weekday-headers">
+            <div class="calendar-grid">
                 <div class="weekday-label">Пн</div><div class="weekday-label">Вт</div><div class="weekday-label">Ср</div><div class="weekday-label">Чт</div><div class="weekday-label">Пт</div><div class="weekday-label">Сб</div><div class="weekday-label">Вс</div>
             </div>
             <div class="calendar-grid" id="calendar-days-box"></div>
-            <div style="display:flex; justify-content:space-between; margin-top:20px; font-size:11px; color:var(--text-sec); font-weight:700;">
-                <div><span style="display:inline-block; width:10px; height:10px; background:#FFE8EC; border-radius:3px; margin-right:4px;"></span>Месячные</div>
-                <div><span style="display:inline-block; width:10px; height:10px; background:#F1F0FF; border-radius:3px; margin-right:4px;"></span>Овуляция (Пик)</div>
-            </div>
         </div>
 
-        <!-- ЭКРАН 4: НАСТРОЙКИ ШЕРИНГА (SHARING) -->
         <div id="screen-sharing" class="card hidden">
             <h2>Настройки шеринга с мужем</h2>
-            <p>Вы полностью контролируете, какие данные транслируются вашему партнеру.</p>
-
-            <div class="switch-row">
-                <span>Показывать общий статус (рекомендация)</span>
-                <label class="switch"><input type="checkbox" id="sw-status" checked onchange="buildPartnerPreview()"><span class="slider"></span></label>
-            </div>
-            <div class="switch-row">
-                <span>Делиться уровнем энергии</span>
-                <label class="switch"><input type="checkbox" id="sw-energy" checked onchange="buildPartnerPreview()"><span class="slider"></span></label>
-            </div>
-            <div class="switch-row">
-                <span>Делиться настроением и сном</span>
-                <label class="switch"><input type="checkbox" id="sw-sleep" checked onchange="buildPartnerPreview()"><span class="slider"></span></label>
-            </div>
-            <div class="switch-row">
-                <span>Показывать мои потребности</span>
-                <label class="switch"><input type="checkbox" id="sw-needs" checked onchange="buildPartnerPreview()"><span class="slider"></span></label>
-            </div>
+            <div class="switch-row"><span>Общий статус</span><label class="switch"><input type="checkbox" id="sw-status" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
+            <div class="switch-row"><span>Делиться энергией</span><label class="switch"><input type="checkbox" id="sw-energy" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
+            <div class="switch-row"><span>Делиться сном</span><label class="switch"><input type="checkbox" id="sw-sleep" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
+            <div class="switch-row"><span>Делиться потребностями</span><label class="switch"><input type="checkbox" id="sw-needs" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
 
             <div class="preview-box">
                 <h3>Предпросмотр экрана мужа</h3>
@@ -224,7 +186,6 @@
             <button class="btn-main btn-sec" style="margin-top: 10px;" onclick="triggerEmergencyPause()">Мгновенная пауза передачи ⏸</button>
         </div>
 
-        <!-- НАВИГАЦИОННАЯ ПАНЕЛЬ -->
         <div class="tab-bar">
             <button class="btn-sub active" id="tab-main" onclick="switchTab('screen-main')">Главная</button>
             <button class="btn-sub" id="tab-checkin" onclick="switchTab('screen-checkin')">Чек-ин</button>
@@ -233,128 +194,82 @@
         </div>
     </div>
 
-
     <!-- ================= КАНАЛ ПАРТНЕРА (PARTNER) ================= -->
     <div id="partner-app" class="hidden" style="width:100%; max-width:400px;">
         <div class="card">
-            <div class="status-header" style="margin-bottom: 12px;">
+            <div class="status-header">
                 <h1>SmartLibido</h1>
                 <div class="partner-view-header">Канал Заботы</div>
             </div>
-            <p style="font-size:12px; font-weight:700; margin-bottom:20px;">Информация бережно подготовлена твоей партнершей:</p>
-            
-            <div id="partner-dyn-emoji" style="font-size:64px; margin:20px 0;">🌤</div>
-            <h2 id="partner-dyn-title" style="text-align:center; font-size:22px; color:var(--primary); margin-bottom:20px;">День баланса</h2>
-            
-            <div class="partner-status-msg" id="partner-dyn-msg">
-                Сегодня хороший день для совместного времени, теплоты и спокойного общения.
-            </div>
-
-            <div id="partner-dyn-metrics" style="border-top:1px solid var(--border); padding-top:15px; margin-top:20px; text-align:left;">
-                <!-- Динамические метрики подгрузятся сюда -->
-            </div>
-
-            <div class="partner-hint" style="margin-top:24px;">
-                <b>💡 Напоминание от Кимико:</b><br>
-                Ни в коем случае не используй эти данные как требование секса или обязанность. Либидо — это про свободу, уважение и искреннюю заботу.
-            </div>
+            <div id="partner-dyn-emoji" style="font-size:64px; margin:20px 0; text-align:center;">🌤</div>
+            <h2 id="partner-dyn-title" style="text-align:center; font-size:22px; color:var(--primary); margin-bottom:20px;">...</h2>
+            <div class="partner-status-msg" id="partner-dyn-msg">Загрузка данных...</div>
+            <div id="partner-dyn-metrics" style="border-top:1px solid var(--border); padding-top:15px; margin-top:20px; text-align:left;"></div>
         </div>
     </div>
 
-
-    <!-- ================= ЭКРАНЫ ОНБОРДИНГА И НАСТРОЙКИ СТАРТА ================= -->
+    <!-- ================= ОНБОРДИНГ ================= -->
     <div id="onboarding-flow" class="hidden" style="width:100%; max-width:400px;">
         <div id="ob-welcome" class="card">
             <h1>SmartLibido</h1>
-            <p>Приватный календарь самонаблюдения за либидо, настроением, энергией и циклом.<br><br><b>Версия 1.0.0 (Release)</b></p>
+            <p>Приватный календарь самонаблюдения.</p>
             <button class="btn-main" onclick="obGoTo('ob-privacy')">Начать</button>
         </div>
-
         <div id="ob-privacy" class="card hidden">
-            <h1>Согласие и Приватность</h1>
-            <p>Правило №1: Ваши замеры никогда не передаются партнеру автоматически. Вы сами регулируете ползунки конфиденциальности.</p>
-            <div style="text-align:left; margin-bottom: 24px;">
-                <label style="display:flex; gap:12px; margin-bottom:14px; align-items:center;">
-                    <input type="checkbox" class="ob-check" id="ob-c1" style="width:22px; height:22px;"> <span>Мне исполнилось 18 лет</span>
-                </label>
-                <label style="display:flex; gap:12px; margin-bottom:14px; align-items:center;">
-                    <input type="checkbox" class="ob-check" id="ob-c2" style="width:22px; height:22px;"> <span>Я согласна с политикой конфиденциальности</span>
-                </label>
-                <label style="display:flex; gap:12px; align-items:center;">
-                    <input type="checkbox" class="ob-check" id="ob-c3" style="width:22px; height:22px;"> <span>Я понимаю, что это не метод контрацепции</span>
-                </label>
-            </div>
+            <h1>Приватность</h1>
+            <label style="display:flex; gap:12px; margin-bottom:14px;"><input type="checkbox" class="ob-check" id="ob-c1"> 18+ лет</label>
+            <label style="display:flex; gap:12px; margin-bottom:14px;"><input type="checkbox" class="ob-check" id="ob-c2"> Согласна с приватностью</label>
+            <label style="display:flex; gap:12px; margin-bottom:14px;"><input type="checkbox" class="ob-check" id="ob-c3"> Не контрацепция</label>
             <button class="btn-main" id="ob-btn-p" disabled onclick="obGoTo('ob-cycle')">Продолжить</button>
         </div>
-
         <div id="ob-cycle" class="card hidden">
             <h1>Настройка цикла</h1>
-            <div class="form-group">
-                <label>Когда началась последняя менструация?</label>
-                <input type="date" id="cycle-start-date">
-            </div>
-            <div class="form-group">
-                <label>Средняя длительность цикла (дней)</label>
-                <div class="chips" id="setup-len-chips">
-                    <div class="chip" onclick="setSetupLen(24, this)">24</div>
-                    <div class="chip" onclick="setSetupLen(26, this)">26</div>
-                    <div class="chip active" onclick="setSetupLen(28, this)">28</div>
-                    <div class="chip" onclick="setSetupLen(30, this)">30</div>
-                    <div class="chip" onclick="setSetupLen(32, this)">32</div>
-                </div>
-            </div>
-            <button class="btn-main" style="margin-top:24px;" onclick="completeOnboarding()">Создать мой календарь ✨</button>
+            <input type="date" id="cycle-start-date" style="margin-bottom:20px;">
+            <button class="btn-main" onclick="completeOnboarding()">Создать календарь</button>
         </div>
     </div>
 
-    <!-- ТЕСТОВЫЙ / ДЕВАЙС ИНДИКАТОР В НИЗУ -->
+    <!-- ДЕБАГ-КНОПКА -->
     <div style="position:fixed; bottom:5px; right:10px; font-size:10px; color:var(--text-sec); opacity:0.3; cursor:pointer;" onclick="debuggerToggleRole()">
-        [ v1.0.0-rc1 | Сменить роль ]
+        [ v1.0.1 | Смена роли ]
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО КАЛЕНДАРНОГО ПРОГНОЗА -->
     <div id="cal-modal" class="modal-overlay hidden">
         <div class="modal-content">
-            <h3 id="modal-title" style="color:var(--primary); margin-top:0;">Прогноз на день</h3>
-            <div id="modal-emoji" style="font-size:48px; margin:14px 0;">🌤</div>
-            <p id="modal-text" style="font-size:14px; margin-bottom:20px;">Настройки...</p>
+            <h3 id="modal-title"></h3>
+            <div id="modal-emoji" style="font-size:48px;"></div>
+            <p id="modal-text"></p>
             <button class="btn-main" onclick="closeModal()">Понятно</button>
         </div>
     </div>
-
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
         tg.ready();
 
-        // ЦЕНТРАЛЬНОЕ ХРАНИЛИЩЕ ДАННЫХ (STATE)
         let state = {
             owner: JSON.parse(localStorage.getItem('sl_data')) || null,
-            daily: JSON.parse(localStorage.getItem('sl_daily')) || {
-                libido: 'mid',
-                energy: 'mid',
-                sleep: 'mid',
-                stress: 'low',
-                needs: []
-            },
-            sharing: JSON.parse(localStorage.getItem('sl_sharing')) || {
-                status: true,
-                energy: true,
-                sleep: true,
-                needs: true
-            }
+            daily: JSON.parse(localStorage.getItem('sl_daily')) || { libido: 'mid', energy: 'mid', sleep: 'mid', stress: 'low', needs: [] },
+            sharing: { status: true, energy: true, sleep: true, needs: true }
         };
 
-        let tempSetupLen = 28;
-
-        // ПУСК ПРИЛОЖЕНИЯ
-        function main() {
+        function init() {
+            // ЧИТАЕМ ПАРАМЕТРЫ TELEGRAM NATIVE START PARAM
+            const webAppStartParam = tg.initDataUnsafe.start_param;
             const urlParams = new URLSearchParams(window.location.search);
-            const isPartner = urlParams.get('partner') === 'true' || window.location.hash.includes('partner');
+            
+            // Если запуск из Telegram Direct Link или через старый URL
+            const isPartner = webAppStartParam || urlParams.get('partner') === 'true' || window.location.hash.includes('partner');
 
             if (isPartner) {
-                renderPartnerScreen(urlParams);
+                // Если старт-параметр передан нативно из Telegram
+                let activeParams = urlParams;
+                if (webAppStartParam) {
+                    // Парсим нативный стэк данных из ТГ
+                    activeParams = new URLSearchParams(atob(webAppStartParam));
+                }
+                renderPartnerScreen(activeParams);
             } else {
                 if (!state.owner) {
                     showOnboarding();
@@ -368,12 +283,37 @@
             }
         }
 
-        // ================= ЛОГИКА ОНБОРДИНГА =================
+        // ================= ШЕРИНГ И СБОРКА ССЫЛОК =================
+        function generatePartnerLink() {
+            const dateStr = state.owner.date;
+            const cycleLen = state.owner.len;
+            
+            const shStatus = document.getElementById('sw-status').checked;
+            const shEnergy = document.getElementById('sw-energy').checked;
+            const shSleep = document.getElementById('sw-sleep').checked;
+            const shNeeds = document.getElementById('sw-needs').checked;
+
+            // Запаковываем все параметры в Base64 для нативного start_param Telegram!
+            const rawPayload = `partner=true&date=${dateStr}&len=${cycleLen}&v_en=${state.daily.energy}&v_sl=${state.daily.sleep}&v_nd=${encodeURIComponent(state.daily.needs.join(','))}&sh_st=${shStatus}&sh_en=${shEnergy}&sh_sl=${shSleep}&sh_nd=${shNeeds}`;
+            const base64Payload = btoa(rawPayload);
+
+            // ПОЛУЧАЕМ ИМЯ ТВОЕГО БОТА ДИНАМИЧЕСКИ ИЛИ ИСПОЛЬЗУЕМ ТЕСТОВОЕ
+            const botUsername = "SmartLibido_test_bot";
+            const nativeTelegramLink = `https://t.me/${botUsername}/app?startapp=${base64Payload}`;
+
+            navigator.clipboard.writeText(nativeTelegramLink).then(() => {
+                tg.showPopup({
+                    title: 'Ссылка-инвайт создана! 🔗',
+                    message: 'Она скопирована. Отправь её мужу в Телеграме. Ссылка откроется строго внутри Telegram как Mini App!',
+                    buttons: [{type: 'ok'}]
+                });
+            });
+        }
+
+        // ================= ВСЁ ОСТАЛЬНОЕ ДЛЯ ОТКАТА И СТАБИЛИЗАЦИИ =================
         function showOnboarding() {
             document.getElementById('onboarding-flow').classList.remove('hidden');
             document.getElementById('ob-welcome').classList.remove('hidden');
-            
-            // Навешиваем слежение за чекбоксами
             document.querySelectorAll('.ob-check').forEach(ch => {
                 ch.addEventListener('change', () => {
                     const c1 = document.getElementById('ob-c1').checked;
@@ -389,126 +329,52 @@
             document.getElementById(id).classList.remove('hidden');
         }
 
-        function setSetupLen(val, el) {
-            document.querySelectorAll('#setup-len-chips .chip').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            tempSetupLen = val;
-            tg.HapticFeedback.selectionChanged();
-        }
-
         function completeOnboarding() {
             const dateInput = document.getElementById('cycle-start-date').value;
-            if (!dateInput) {
-                alert('Укажите корректную дату начала последних месячных.');
-                return;
-            }
-
-            state.owner = {
-                date: dateInput,
-                len: tempSetupLen,
-                period: 5
-            };
-
+            if (!dateInput) return alert('Укажите дату.');
+            state.owner = { date: dateInput, len: 28, period: 5 };
             localStorage.setItem('sl_data', JSON.stringify(state.owner));
-            document.getElementById('onboarding-flow').classList.add('hidden');
-            document.getElementById('owner-app').classList.remove('hidden');
-            
-            location.reload(); // Перезагружаем для чистого рендера
+            location.reload();
         }
 
-        // ================= ПОДСЧЕТ АЛГОРИТМА ПРОГНОЗА (п. 35 PDF) =================
         function predictDay(offsetDays) {
             if (!state.owner) return null;
-
             const start = new Date(state.owner.date);
             const now = new Date();
             now.setDate(now.getDate() + offsetDays);
-
             const diffTime = Math.abs(now - start);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             const cycleDay = (diffDays % state.owner.len) || 1;
 
-            let phase = 'Фолликулярная';
-            let emoji = '🌤';
-            let baseScore = 50;
-            let level = 'warm';
-            let hint = 'Организм копит ресурсы. Благоприятное время для физической активности и общения.';
+            let phase = 'Фолликулярная'; let emoji = '🌤'; let baseScore = 50; let level = 'warm';
+            let hint = 'Организм копит ресурсы. Благоприятное время для активности.';
 
-            // Упрощенная медицинская логика деления фаз цикла
             if (cycleDay <= 5) {
-                phase = 'Менструация';
-                emoji = '🌙';
-                baseScore = 15;
-                level = 'low';
-                hint = 'Организм восстанавливается. Ресурс на минимуме. Самое время укутаться в плед и беречь себя.';
+                phase = 'Менструация'; emoji = '🌙'; baseScore = 15; level = 'low'; hint = 'Ресурс на минимуме. Берегите свои силы.';
             } else if (cycleDay > 5 && cycleDay < 12) {
-                phase = 'Фолликулярная';
-                emoji = '🌤';
-                baseScore = 55;
-                level = 'warm';
-                hint = 'Период подъема энергии и уверенности. Могут расти коммуникабельность и открытость.';
+                phase = 'Фолликулярная'; emoji = '🌤'; baseScore = 55; level = 'warm'; hint = 'Комфортная фаза роста энергии.';
             } else if (cycleDay >= 12 && cycleDay <= 16) {
-                phase = 'Овуляция';
-                emoji = '🔥';
-                baseScore = 90;
-                level = 'high';
-                hint = 'Гормональный пик! Огромный запас внутренней прочности, максимальное желание близости и тепла.';
+                phase = 'Овуляция'; emoji = '🔥'; baseScore = 90; level = 'high'; hint = 'Пик сил, либидо и тепла!';
             } else {
-                phase = 'Лютеиновая phase';
-                emoji = '🧘';
-                baseScore = 40;
-                level = 'gentle';
-                hint = 'Тело замедляется. Возможна легкая утомляемость. Уделите больше времени сну и комфортной еде.';
+                phase = 'Лютеиновая'; emoji = '🧘'; baseScore = 40; level = 'gentle'; hint = 'Замедление темпа. Будьте к себе мягче.';
             }
-
-            // Корректировка сегодняшними чек-инами (если offset == 0)
-            let adjustment = 0;
-            if (offsetDays === 0) {
-                if (state.daily.energy === 'high') adjustment += 15;
-                if (state.daily.energy === 'low') adjustment -= 15;
-                if (state.daily.sleep === 'good') adjustment += 10;
-                if (state.daily.sleep === 'bad') adjustment -= 15;
-                if (state.daily.stress === 'high') adjustment -= 20;
-                if (state.daily.stress === 'low') adjustment += 5;
-            }
-
-            let finalScore = Math.max(0, Math.min(100, baseScore + adjustment));
-
-            // Если есть ручное либидо - смешиваем 70/30
-            if (offsetDays === 0 && state.daily.libido) {
-                let manualScore = 50;
-                if (state.daily.libido === 'high') manualScore = 95;
-                if (state.daily.libido === 'low') manualScore = 15;
-                finalScore = Math.round((manualScore * 0.7) + (finalScore * 0.3));
-            }
-
-            // Пересчитываем уровень по финальному скору
-            if (finalScore < 30) level = 'low';
-            else if (finalScore < 60) level = 'gentle';
-            else if (finalScore < 85) level = 'warm';
-            else level = 'high';
-
-            return { cycleDay, phase, emoji, finalScore, level, hint };
+            return { cycleDay, phase, emoji, level, hint };
         }
 
         function calculateOwnerPredictions() {
-            const prediction = predictDay(0);
-            if (!prediction) return;
-
-            document.getElementById('today-cycle-day').innerText = `${prediction.cycleDay}-й день цикла`;
-            document.getElementById('today-phase').innerText = `${prediction.phase} фаза`;
-            document.getElementById('today-score').innerText = prediction.emoji;
-            document.getElementById('today-hint').innerText = prediction.hint;
+            const pred = predictDay(0);
+            if (!pred) return;
+            document.getElementById('today-cycle-day').innerText = `${pred.cycleDay}-й день цикла`;
+            document.getElementById('today-phase').innerText = `${pred.phase} фаза`;
+            document.getElementById('today-score').innerText = pred.emoji;
+            document.getElementById('today-hint').innerText = pred.hint;
         }
 
-        // ================= ЛОГИКА ЕЖЕДНЕВНОГО ЧЕК-ИНА =================
         function setDaily(field, value, el) {
             el.parentElement.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
             state.daily[field] = value;
             tg.HapticFeedback.impactOccurred('medium');
-            
-            // Динамический пересчет прогноза на лету!
             calculateOwnerPredictions();
             buildPartnerPreview();
         }
@@ -524,280 +390,117 @@
             buildPartnerPreview();
         }
 
-        function restoreCheckInUI() {
-            // Подсветка кнопок
-            const map = {
-                libido: 'grid-libido',
-                energy: 'grid-energy',
-                sleep: 'grid-sleep',
-                stress: 'grid-stress'
-            };
-            
-            for (let k in map) {
-                const val = state.daily[k];
-                const grid = document.getElementById(map[k]);
-                const Btns = grid.querySelectorAll('.emoji-btn');
-                Btns.forEach(btn => {
-                    const txt = btn.querySelector('span').innerText.toLowerCase();
-                    if ((val === 'high' && (txt.includes('высок') || txt.includes('много') || txt.includes('низк'))) ||
-                        (val === 'mid' && (txt.includes('средн') || txt.includes('норм') || txt.includes('обычн') || txt.includes('средн'))) ||
-                        (val === 'low' && (txt.includes('низк') || txt.includes('мало') || txt.includes('низк'))) ||
-                        (val === 'good' && txt.includes('отличн')) ||
-                        (val === 'bad' && txt.includes('плох')) ||
-                        (val === 'high' && k === 'stress' && txt.includes('высок'))) {
-                        btn.classList.add('active');
-                    }
-                });
-            }
-
-            // Потребности
-            const needGrid = document.getElementById('grid-needs');
-            needGrid.querySelectorAll('.need-btn').forEach(btn => {
-                if (state.daily.needs.includes(btn.innerText)) {
-                    btn.classList.add('active');
-                }
-            });
-        }
-
         function saveCheckIn() {
             localStorage.setItem('sl_daily', JSON.stringify(state.daily));
-            tg.showPopup({
-                title: 'Сохранено!',
-                message: 'Показатели самочувствия успешно записаны на сегодня. Данные остаются на вашем устройстве.',
-                buttons: [{type: 'ok'}]
-            });
+            tg.showPopup({ title: 'Сохранено', message: 'Показатели записаны.', buttons: [{type:'ok'}] });
         }
 
-        // ================= ЛОГИКА КАЛЕНДАРЯ (п. 6.6 PDF) =================
         function renderCalendarGrid() {
             const box = document.getElementById('calendar-days-box');
+            if(!box) return;
             box.innerHTML = '';
-
             const now = new Date();
             const year = now.getFullYear();
             const month = now.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const correctedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
+            const totalDays = new Date(year, month + 1, 0).getDate();
 
             const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
             document.getElementById('cal-month-name').innerText = `${monthNames[month]} ${year}`;
 
-            const firstDay = new Date(year, month, 1).getDay(); // День недели 1-го числа (0 - Вс)
-            const correctedFirstDay = firstDay === 0 ? 6 : firstDay - 1; // Корректируем под Пн-Вс
-            const totalDays = new Date(year, month + 1, 0).getDate();
-
-            // Пустые ячейки для выравнивания календаря
             for (let i = 0; i < correctedFirstDay; i++) {
-                let cell = document.createElement('div');
-                cell.className = 'day empty';
-                box.appendChild(cell);
+                let cell = document.createElement('div'); cell.className = 'day empty'; box.appendChild(cell);
             }
-
-            // Заполнение календарной сетки
             for (let i = 1; i <= totalDays; i++) {
-                let cell = document.createElement('div');
-                cell.className = 'day';
-                cell.innerText = i;
-
+                let cell = document.createElement('div'); cell.className = 'day'; cell.innerText = i;
                 if (i === now.getDate()) cell.classList.add('today');
-
-                // Прогнозируем состояние на этот день
-                const diffDaysToCell = i - now.getDate();
-                const pred = predictDay(diffDaysToCell);
-
+                const diff = i - now.getDate();
+                const pred = predictDay(diff);
                 if (pred) {
                     if (pred.cycleDay <= 5) cell.classList.add('m');
                     else if (pred.cycleDay >= 12 && pred.cycleDay <= 16) cell.classList.add('o');
                 }
-
-                // Клик на день календаря показывает подробный прогноз
                 cell.onclick = () => {
-                    if (pred) {
-                        tg.HapticFeedback.impactOccurred('light');
-                        openModal(
-                            `${i} ${monthNames[month]}`,
-                            pred.emoji,
-                            `<b>Прогноз:</b> ${pred.phase} фаза (${pred.cycleDay}-й день цикла).<br><br>${pred.hint}`
-                        );
-                    }
+                    openModal(`${i} ${monthNames[month]}`, pred.emoji, `<b>Прогноз:</b> ${pred.phase} фаза.<br><br>${pred.hint}`);
                 };
-
                 box.appendChild(cell);
             }
         }
 
-        // ================= ЛОГИКА ШЕРИНГА (п. 6.7 PDF) =================
         function buildPartnerPreview() {
             const preview = document.getElementById('partner-preview-render');
-            
+            if(!preview) return;
             const shStatus = document.getElementById('sw-status').checked;
             const shEnergy = document.getElementById('sw-energy').checked;
             const shSleep = document.getElementById('sw-sleep').checked;
             const shNeeds = document.getElementById('sw-needs').checked;
-
             const pred = predictDay(0);
-            if (!pred) return;
 
-            let html = `<div style="font-size: 32px; margin-bottom: 10px;">${shStatus ? pred.emoji : '🌤'}</div>`;
-            html += `<b style="font-size: 16px; color: var(--primary);">${shStatus ? getSafePartnerTitle(pred.level) : 'Обычный день'}</b>`;
-            html += `<p style="font-size: 13px; margin: 8px 0; color: var(--text-sec);">${getSafePartnerMessage(pred.level)}</p>`;
-
-            let metrics = '';
-            if (shEnergy) metrics += `<div>🔋 Ресурс: ${getEnergyLabel(state.daily.energy)}</div>`;
-            if (shSleep) metrics += `<div>😴 Сон: ${getSleepLabel(state.daily.sleep)}</div>`;
-            
-            if (metrics) {
-                html += `<div style="font-size:12px; font-weight:700; border-top: 1px solid var(--border); padding-top:10px; margin-top:10px;">${metrics}</div>`;
-            }
-
-            if (shNeeds && state.daily.needs.length > 0) {
-                html += `<div style="font-size:12px; font-weight:700; margin-top:10px;">💝 Моя потребность: <span style="background:var(--primary-soft); color:var(--primary); padding:3px 8px; border-radius:10px;">${state.daily.needs.join(', ')}</span></div>`;
-            }
-
+            let html = `<div style="font-size: 32px;">${shStatus ? pred.emoji : '🌤'}</div>`;
+            html += `<b>${shStatus ? getSafePartnerTitle(pred.level) : 'Обычный день'}</b>`;
+            if (shEnergy) html += `<div>🔋 Ресурс: ${getEnergyLabel(state.daily.energy)}</div>`;
+            if (shSleep) html += `<div>😴 Сон: ${getSleepLabel(state.daily.sleep)}</div>`;
+            if (shNeeds && state.daily.needs.length > 0) html += `<div>💝 Потребность: ${state.daily.needs.join(', ')}</div>`;
             preview.innerHTML = html;
         }
 
-        function getEnergyLabel(val) {
-            if (val === 'high') return 'Высокий';
-            if (val === 'low') return 'Снижен';
-            return 'В норме';
-        }
-
-        function getSleepLabel(val) {
-            if (val === 'good') return 'Выспалась';
-            if (val === 'bad') return 'Не выспалась';
-            return 'Обычный';
-        }
-
         function getSafePartnerTitle(level) {
-            if (level === 'high') return 'День яркого тонуса';
-            if (level === 'low') return 'День максимальной бережности';
-            if (level === 'gentle') return 'Период нежного восстановления';
-            return 'Период стабильного ресурса';
+            if (level === 'high') return 'Яркий ресурс';
+            if (level === 'low') return 'Максимальная бережность';
+            if (level === 'gentle') return 'Нежное восстановление';
+            return 'Стабильный тонус';
         }
 
         function getSafePartnerMessage(level) {
-            if (level === 'high') return 'У неё сейчас пик сил и тепла! Прекрасный день для долгих прогулок, ярких разговоров и близости.';
-            if (level === 'low') return 'Организм требует заботы. Постарайтесь приготовить ужин, убрать посуду или просто укутать одеялом.';
-            if (level === 'gentle') return 'Период нежного отдыха. Не торопите её, окружите мягкой заботой.';
-            return 'У неё стабильный, комфортный уровень сил. Всё супер.';
+            if (level === 'high') return 'У неё пик сил и тепла. Прекрасный день для совместного времени и близости.';
+            if (level === 'low') return 'Ресурс снижен. Проявите максимум заботы, сделайте чай или помогите по дому.';
+            if (level === 'gentle') return 'Период мягкого восстановления сил. Поддержите спокойное общение.';
+            return 'Комфортный уровень ресурсов. Всё отлично.';
         }
 
-        function generatePartnerLink() {
-            // ЭЛИТНЫЙ ИНСТРУМЕНТ: Все настройки шеринга сериализуем в хэш для бесшовной интеграции без лагающей БД!
-            const dateStr = state.owner.date;
-            const cycleLen = state.owner.len;
-            
-            const shStatus = document.getElementById('sw-status').checked;
-            const shEnergy = document.getElementById('sw-energy').checked;
-            const shSleep = document.getElementById('sw-sleep').checked;
-            const shNeeds = document.getElementById('sw-needs').checked;
-
-            const url = window.location.href.split('#')[0].split('?')[0] + 
-                `?partner=true` +
-                `&date=${dateStr}` +
-                `&len=${cycleLen}` +
-                `&v_lib=${state.daily.libido}` +
-                `&v_en=${state.daily.energy}` +
-                `&v_sl=${state.daily.sleep}` +
-                `&v_nd=${encodeURIComponent(state.daily.needs.join(','))}` +
-                `&sh_st=${shStatus}&sh_en=${shEnergy}&sh_sl=${shSleep}&sh_nd=${shNeeds}`;
-
-            navigator.clipboard.writeText(url).then(() => {
-                tg.showPopup({
-                    title: 'Ссылка создана! 🔗',
-                    message: 'Абсолютно безопасная ссылка-инвайт скопирована в буфер твоего телефона. Отправь её мужу в личку.',
-                    buttons: [{type: 'ok'}]
-                });
-            });
-        }
-
-        function triggerEmergencyPause() {
-            tg.showPopup({
-                title: 'Мгновенная пауза ⏸',
-                message: 'Передача данных мужу немедленно приостановлена. На его экране теперь отображается заглушка без причин.',
-                buttons: [{type: 'ok'}]
-            });
-        }
-
-        // ================= ЛОГИКА ЭКРАНА ПАРТНЕРА (п. 6.8 PDF) =================
-        function renderPartnerScreen(urlParams) {
+        function renderPartnerScreen(params) {
             document.getElementById('partner-app').classList.remove('hidden');
-
-            const dateStr = urlParams.get('date');
-            const cycleLen = parseInt(urlParams.get('len')) || 28;
-            
-            // Если параметры переданы - проводим точнейшие расчеты
+            const dateStr = params.get('date');
+            const cycleLen = parseInt(params.get('len')) || 28;
             if (dateStr) {
                 const start = new Date(dateStr);
                 const now = new Date();
-                const diffTime = Math.abs(now - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffDays = Math.ceil(Math.abs(now - start) / (1000 * 60 * 60 * 24));
                 const cycleDay = (diffDays % cycleLen) || 1;
-
-                // Базовый уровень расчета
-                let score = 50;
                 let level = 'warm';
+                if (cycleDay <= 5) level = 'low';
+                else if (cycleDay >= 12 && cycleDay <= 16) level = 'high';
+                else if (cycleDay > 16) level = 'gentle';
 
-                if (cycleDay <= 5) { score = 20; level = 'low'; }
-                else if (cycleDay > 5 && cycleDay < 12) { score = 60; level = 'warm'; }
-                else if (cycleDay >= 12 && cycleDay <= 16) { score = 90; level = 'high'; }
-                else { score = 40; level = 'gentle'; }
+                const shSt = params.get('sh_st') === 'true';
+                const shEn = params.get('sh_en') === 'true';
+                const shSl = params.get('sh_sl') === 'true';
+                const shNd = params.get('sh_nd') === 'true';
 
-                // Примешиваем переданные показатели
-                const valEnergy = urlParams.get('v_en');
-                const valSleep = urlParams.get('v_sl');
-                if (valEnergy === 'high') score += 10;
-                if (valEnergy === 'low') score -= 15;
-                if (valSleep === 'bad') score -= 15;
-
-                if (score < 30) level = 'low';
-                else if (score < 60) level = 'gentle';
-                else if (score < 85) level = 'warm';
-                else level = 'high';
-
-                // Свитчи шеринга
-                const shSt = urlParams.get('sh_st') === 'true';
-                const shEn = urlParams.get('sh_en') === 'true';
-                const shSl = urlParams.get('sh_sl') === 'true';
-                const shNd = urlParams.get('sh_nd') === 'true';
-
-                // Визуализация
                 document.getElementById('partner-dyn-title').innerText = shSt ? getSafePartnerTitle(level) : 'Обычный день';
                 document.getElementById('partner-dyn-msg').innerText = getSafePartnerMessage(level);
                 
                 const emojiMap = { low: '🌙', gentle: '🧘', warm: '🌤', high: '🔥' };
                 document.getElementById('partner-dyn-emoji').innerText = shSt ? emojiMap[level] : '🌤';
 
-                // Метрики
-                let metricsHTML = '';
-                if (shEn && valEnergy) {
-                    metricsHTML += `<p style="margin:6px 0;">🔋 <b>Уровень сил:</b> ${getEnergyLabel(valEnergy)}</p>`;
-                }
-                if (shSl && valSleep) {
-                    metricsHTML += `<p style="margin:6px 0;">😴 <b>Качество сна:</b> ${getSleepLabel(valSleep)}</p>`;
-                }
+                let metrics = '';
+                if (shEn) metrics += `<p>🔋 <b>Энергия:</b> ${getEnergyLabel(params.get('v_en'))}</p>`;
+                if (shSl) metrics += `<p>😴 <b>Сон:</b> ${getSleepLabel(params.get('v_sl'))}</p>`;
                 
-                const needsString = urlParams.get('v_nd');
-                if (shNd && needsString) {
-                    const decoded = decodeURIComponent(needsString);
-                    if (decoded) {
-                        metricsHTML += `<p style="margin:12px 0 0 0; font-size:13px;">💝 <b>Её потребность на сегодня:</b> <span style="background:var(--primary-soft); color:var(--primary); padding:3px 8px; border-radius:10px;">${decoded}</span></p>`;
-                    }
+                const decodedNd = decodeURIComponent(params.get('v_nd') || '');
+                if (shNd && decodedNd) {
+                    metrics += `<p>💝 <b>Потребность:</b> <span style="background:var(--primary-soft); color:var(---primary); padding:3px 8px; border-radius:10px;">${decodedNd}</span></p>`;
                 }
-
-                document.getElementById('partner-dyn-metrics').innerHTML = metricsHTML;
+                document.getElementById('partner-dyn-metrics').innerHTML = metrics;
             }
         }
 
-        // ================= ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =================
         function switchTab(id) {
             document.querySelectorAll('#owner-app > .card').forEach(s => s.classList.add('hidden'));
             document.querySelectorAll('.tab-bar > button').forEach(b => b.classList.remove('active'));
-            
             document.getElementById(id).classList.remove('hidden');
-            
-            const tabId = 'tab-' + id.split('-')[1];
-            document.getElementById(tabId).classList.add('active');
-            
+            document.getElementById('tab-' + id.split('-')[1]).classList.add('active');
             tg.HapticFeedback.selectionChanged();
         }
 
@@ -808,22 +511,23 @@
             document.getElementById('cal-modal').classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('cal-modal').classList.add('hidden');
+        function closeModal() { document.getElementById('cal-modal').classList.add('hidden'); }
+
+        function triggerEmergencyPause() {
+            tg.showPopup({ title: 'Мгновенная пауза ⏸', message: 'Передача данных мужу остановлена.', buttons: [{type:'ok'}] });
         }
 
         function debuggerToggleRole() {
-            // Переключатель роли для быстрого тестирования на девайсе
-            const fullUrl = window.location.href;
-            if (fullUrl.includes('partner=true')) {
-                window.location.href = window.location.href.split('?')[0];
+            const url = window.location.href.split('?')[0];
+            const testPayload = btoa('partner=true&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true');
+            if (window.location.href.includes('partner=true') || window.location.href.includes('startapp')) {
+                window.location.href = url;
             } else {
-                window.location.href = window.location.href.split('?')[0] + '?partner=true&date=2026-05-24&len=28&v_lib=high&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true';
+                window.location.href = url + '?partner=true&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true';
             }
         }
 
-        // Запуск
-        main();
+        init();
     </script>
 </body>
 </html>
