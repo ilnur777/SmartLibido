@@ -3,7 +3,7 @@
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no'>
-    <title>SmartLibido MVP v0.2</title>
+    <title>SmartLibido MVP v0.2.2</title>
     <script src='https://telegram.org/js/telegram-web-app.js'></script>
     <style>
         :root {
@@ -29,25 +29,24 @@
 </head>
 <body>
 
-    <!-- v0.2.1 -->
     <div id='screen-welcome' class='card'>
         <h1>СмартЛибидо</h1>
-        <p>Добро пожаловать. Помогает отслеживать цикл, энергию и либидо. <br><br><b>Версия 0.2.1</b></p>
-        <button onclick='goToScreen(\"screen-privacy\")'>Начать</button>
+        <p>Добро пожаловать. Помогает отслеживать цикл, энергию и либидо. <br><br><b>Версия 0.2.2</b></p>
+        <button id='btn-start'>Начать</button>
     </div>
 
     <div id='screen-privacy' class='card hidden'>
         <h1>Приватность</h1>
         <div class='check-row'>
-            <input type='checkbox' id='c1' onchange='checkPriv()'> <span>Мне есть 18 лет</span>
+            <input type='checkbox' id='c1' class='privacy-check'> <span>Мне есть 18 лет</span>
         </div>
         <div class='check-row'>
-            <input type='checkbox' id='c2' onchange='checkPriv()'> <span>Я согласна с условиями</span>
+            <input type='checkbox' id='c2' class='privacy-check'> <span>Я согласна с условиями</span>
         </div>
         <div class='check-row'>
-            <input type='checkbox' id='c3' onchange='checkPriv()'> <span>Это не мед. сервис</span>
+            <input type='checkbox' id='c3' class='privacy-check'> <span>Это не мед. сервис</span>
         </div>
-        <button id='btn-p' disabled onclick='goToScreen(\"screen-cycle\")'>Продолжить</button>
+        <button id='btn-p' disabled>Продолжить</button>
     </div>
 
     <div id='screen-cycle' class='card hidden'>
@@ -59,14 +58,14 @@
         <div class='input-group'>
             <label>Длина цикла</label>
             <div class='chips' id='c-len'>
-                <div class='chip' onclick='sel(this,\"len\",24)'>24</div>
-                <div class='chip' onclick='sel(this,\"len\",26)'>26</div>
-                <div class='chip active' onclick='sel(this,\"len\",28)'>28</div>
-                <div class='chip' onclick='sel(this,\"len\",30)'>30</div>
-                <div class='chip' onclick='sel(this,\"len\",32)'>32</div>
+                <div class='chip' data-val='24'>24</div>
+                <div class='chip' data-val='26'>26</div>
+                <div class='chip active' data-val='28'>28</div>
+                <div class='chip' data-val='30'>30</div>
+                <div class='chip' data-val='32'>32</div>
             </div>
         </div>
-        <button onclick='save()'>Готово</button>
+        <button id='btn-save'>Готово</button>
     </div>
 
     <script>
@@ -81,23 +80,49 @@
             document.getElementById(id).classList.remove('hidden');
         }
 
-        function checkPriv() {
-            const v = document.getElementById('c1').checked && document.getElementById('c2').checked && document.getElementById('c3').checked;
-            document.getElementById('btn-p').disabled = !v;
-        }
+        // Кнопка Старт
+        document.getElementById('btn-start').addEventListener('click', () => {
+            goToScreen('screen-privacy');
+        });
 
-        function sel(el, k, v) {
-            el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            data[k] = v;
-        }
+        // Чекбоксы приватности
+        document.querySelectorAll('.privacy-check').forEach(input => {
+            input.addEventListener('change', () => {
+                const allChecked = Array.from(document.querySelectorAll('.privacy-check')).every(i => i.checked);
+                document.getElementById('btn-p').disabled = !allChecked;
+            });
+        });
 
-        function save() {
+        // Кнопка Продолжить
+        document.getElementById('btn-p').addEventListener('click', () => {
+            goToScreen('screen-cycle');
+        });
+
+        // Выбор чипов
+        document.getElementById('c-len').addEventListener('click', (e) => {
+            if (e.target.classList.contains('chip')) {
+                document.querySelectorAll('#c-len .chip').forEach(c => c.classList.remove('active'));
+                e.target.classList.add('active');
+                data.len = parseInt(e.target.dataset.val);
+            }
+        });
+
+        // Кнопка Готово
+        document.getElementById('btn-save').addEventListener('click', () => {
             data.date = document.getElementById('last-date').value;
-            if(!data.date) return alert('Укажите дату');
+            if(!data.date) {
+                tg.showAlert('Пожалуйста, укажите дату');
+                return;
+            }
             localStorage.setItem('sl_data', JSON.stringify(data));
-            tg.showPopup({ title: 'Успех', message: 'Цикл настроен! Жди обновления главного экрана.', buttons: [{type: 'ok'}] });
-        }
+            tg.showPopup({ 
+                title: 'Отлично!', 
+                message: 'Настройки сохранены. Скоро мы добавим главный экран.', 
+                buttons: [{type: 'ok'}] 
+            }, () => {
+                tg.close();
+            });
+        });
     </script>
 </body>
 </html>
