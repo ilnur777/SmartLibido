@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartLibido MVP v0.8.0</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF; --text-main: #241F2E; --text-sec: #7A7285; --border: #EEE7F1; --accent: #FF8BA7; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; min-height: 100vh; align-items: center; box-sizing: border-box; }
+        .card { background: var(--surface); padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; box-sizing: border-box; }
+        .hidden { display: none !important; }
+        .nav-btn { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 16px; width: 100%; font-weight: bold; margin-bottom: 12px; cursor: pointer; font-size: 16px; }
+        .btn-sec { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        .partner-hint { background: #f0f7ff; border-left: 4px solid #0088cc; padding: 15px; text-align: left; border-radius: 12px; font-size: 14px; margin-top: 15px; }
+        .dev-badge { position: fixed; bottom: 10px; right: 10px; font-size: 10px; color: #ccc; cursor: pointer; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН ХОЗЯЙКИ -->
+    <div id="view-owner" class="hidden" style="width:100%; max-width:400px;">
+        <div class="card">
+            <h1>SmartLibido</h1>
+            <p>День 11. Фолликулярная фаза 🌤</p>
+            <button class="nav-btn" onclick="toggleSharing()">💞 Настроить шеринг</button>
+            <button class="nav-btn btn-sec">📅 Календарь</button>
+            <button class="nav-btn btn-sec">📝 Чек-ин</button>
+        </div>
+
+        <div id="sharing-panel" class="card hidden">
+            <h3>Ссылка для партнера</h3>
+            <p style="font-size:12px;">Скопируй и отправь мужу:</p>
+            <button class="nav-btn" onclick="copyInvite()">Копировать инвайт</button>
+            <button class="btn-sec" onclick="toggleSharing()" style="padding:10px; border-radius:10px; border:none; width:100%;">Закрыть</button>
+        </div>
+    </div>
+
+    <!-- ЭКРАН ПАРТНЕРА -->
+    <div id="view-partner" class="hidden" style="width:100%; max-width:400px;">
+        <div class="card">
+            <h1>SmartLibido <small style="opacity:0.5; font-size:12px;">Partner</small></h1>
+            <div style="font-size:50px; margin:20px 0;">🌤</div>
+            <h2 style="color:var(--primary);">Сегодня: День тепла</h2>
+            <div class="partner-hint">
+                <b>💡 Совет Кимико:</b><br>
+                Хороший день для совместного ужина или долгой прогулки. Никакого давления, только поддержка.
+            </div>
+            <p style="font-size:10px; margin-top:20px; color:#aaa;">Вы видите этот экран как ПАРТНЕР</p>
+        </div>
+    </div>
+
+    <!-- Секретный переключатель для Ильнура -->
+    <div class="dev-badge" onclick="switchRole()">DEBUG: Switch Role</div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        let currentRole = 'owner';
+
+        function init() {
+            // Проверяем URL на наличие #invite или ?role=partner
+            const isInvite = window.location.href.includes('invite') || window.location.search.includes('partner');
+            setRole(isInvite ? 'partner' : 'owner');
+        }
+
+        function setRole(role) {
+            currentRole = role;
+            document.getElementById('view-owner').classList.add('hidden');
+            document.getElementById('view-partner').classList.add('hidden');
+            
+            if (role === 'partner') {
+                document.getElementById('view-partner').classList.remove('hidden');
+            } else {
+                document.getElementById('view-owner').classList.remove('hidden');
+            }
+        }
+
+        function switchRole() {
+            setRole(currentRole === 'owner' ? 'partner' : 'owner');
+            tg.HapticFeedback.impactOccurred('heavy');
+        }
+
+        function toggleSharing() {
+            document.getElementById('sharing-panel').classList.toggle('hidden');
+        }
+
+        function copyInvite() {
+            const url = window.location.href.split('#')[0] + '?partner=true';
+            navigator.clipboard.writeText(url).then(() => {
+                tg.showAlert('Ссылка для партнера скопирована!');
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
