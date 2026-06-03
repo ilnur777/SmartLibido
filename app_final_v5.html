@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartLibido v0.5.0</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF; --text-main: #241F2E; --text-sec: #7A7285; --border: #EEE7F1; --accent: #FF8BA7; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: var(--surface); padding: 20px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
+        .hidden { display: none !important; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 15px; }
+        .day { aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; border-radius: 8px; border: 1px solid var(--border); }
+        .day.m { background: #FFDDE4; } /* Менструация */
+        .day.o { background: #EEE8FF; border-color: var(--primary); } /* Овуляция */
+        .day.today { border: 2px solid var(--primary); font-weight: bold; }
+        .nav-btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: bold; margin-bottom: 10px; }
+        .btn-sec { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+    </style>
+</head>
+<body>
+    <div id="screen-main" class="card">
+        <h1>SmartLibido</h1>
+        <div id="status">Загрузка...</div>
+        <button class="nav-btn" onclick="showScreen('screen-calendar')">📅 Календарь</button>
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-checkin')">📝 Чек-ин</button>
+    </div>
+
+    <div id="screen-calendar" class="card hidden">
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-main')">← Назад</button>
+        <h2>Календарь</h2>
+        <div class="calendar-grid" id="calendar"></div>
+        <p style="font-size:10px; margin-top:10px;">🔴 - Менструация | 🟣 - Овуляция</p>
+    </div>
+
+    <div id="screen-checkin" class="card hidden">
+        <button class="nav-btn btn-sec" onclick="showScreen('screen-main')">← Назад</button>
+        <h2>Чек-ин</h2>
+        <button class="nav-btn" onclick="tg.showPopup({message:'Сохранено'}); showScreen('screen-main')">Сохранить</button>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        let slData = JSON.parse(localStorage.getItem('sl_data'));
+        
+        function showScreen(id) {
+            document.querySelectorAll('body > div').forEach(d => d.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar');
+            grid.innerHTML = '';
+            const start = new Date(slData.date);
+            const now = new Date();
+            
+            for(let i=1; i<=30; i++) {
+                let d = document.createElement('div');
+                d.className = 'day';
+                d.innerText = i;
+                // Упрощенная логика фаз для визуала
+                if(i <= 5) d.classList.add('m');
+                if(i >= 13 && i <= 15) d.classList.add('o');
+                grid.appendChild(d);
+            }
+        }
+
+        if(slData) {
+            document.getElementById('status').innerText = '11-й день цикла';
+            renderCalendar();
+        } else {
+            window.location.href = 'index_v3.html';
+        }
+    </script>
+</body>
+</html>
