@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SmartLibido v0.7.0 (Role-Based)</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF; --text-main: #241F2E; --text-sec: #7A7285; --border: #EEE7F1; --accent: #FF8BA7; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: var(--surface); padding: 20px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.05); width: 100%; max-width: 400px; text-align: center; margin-bottom: 20px; }
+        .hidden { display: none !important; }
+        .nav-btn { background: var(--primary); color: white; border: none; padding: 14px; border-radius: 14px; width: 100%; font-weight: bold; margin-bottom: 10px; cursor: pointer; }
+        .btn-sec { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        .partner-hint { background: #f0f7ff; border-left: 4px solid #0088cc; padding: 15px; text-align: left; border-radius: 12px; font-size: 14px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН ПОЛЬЗОВАТЕЛЬНИЦЫ (ХОЗЯЙКИ) -->
+    <div id="role-owner" class="hidden" style="width:100%; max-width:400px;">
+        <div class="card">
+            <h1>SmartLibido</h1>
+            <div id="owner-status">11-й день цикла</div>
+            <p style="color:var(--accent); font-weight:bold;">Фолликулярная фаза</p>
+            <button class="nav-btn" onclick="showOwnerScreen('owner-sharing')">💞 Партнерство</button>
+            <button class="nav-btn btn-sec">📅 Календарь</button>
+            <button class="nav-btn btn-sec">📝 Чек-ин</button>
+        </div>
+
+        <div id="owner-sharing" class="card hidden">
+            <button class="nav-btn btn-sec" onclick="showOwnerScreen('role-owner')">← Назад</button>
+            <h2>Настройки шеринга</h2>
+            <button class="nav-btn" onclick="copyInvite()">Создать инвайт для мужа</button>
+        </div>
+    </div>
+
+    <!-- ЭКРАН ПАРТНЕРА (6.8) -->
+    <div id="role-partner" class="hidden" style="width:100%; max-width:400px;">
+        <div class="card">
+            <h1>SmartLibido <span style="font-size:12px; opacity:0.6;">Partner</span></h1>
+            <p style="font-size:14px;">Статус вашей партнерши:</p>
+            <div style="font-size:48px; margin:15px 0;">🌤</div>
+            <div style="font-weight:bold; color:var(--primary); font-size:18px;">День бережности</div>
+            <div class="partner-hint">
+                <b>💡 Подсказка заботы:</b><br>
+                Сегодня может быть важен спокойный разговор. Спросите, как она себя чувствует, и дайте пространство для обнимашек.
+            </div>
+            <p style="font-size:10px; color:var(--text-sec); margin-top:20px;">Используйте это для заботы, а не для давления. (п. 6.8 плана)</p>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+
+        // Главная логика определения РОЛИ
+        function initApp() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isPartnerCode = urlParams.get('start') || window.location.hash.includes('invite');
+
+            if (isPartnerCode) {
+                console.log('User identified as PARTNER');
+                document.getElementById('role-partner').classList.remove('hidden');
+            } else {
+                console.log('User identified as OWNER');
+                document.getElementById('role-owner').classList.remove('hidden');
+            }
+        }
+
+        function showOwnerScreen(id) {
+            document.getElementById('role-owner').classList.add('hidden');
+            document.getElementById('owner-sharing').classList.add('hidden');
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function copyInvite() {
+            const inviteUrl = "https://t.me/SmartLibido_test_bot?start=invite_" + Math.floor(Math.random() * 10000);
+            navigator.clipboard.writeText(inviteUrl).then(() => {
+                tg.showPopup({
+                    title: 'Готово!',
+                    message: 'Ссылка-инвайт скопирована. Отправь её партнеру в личные сообщения.',
+                    buttons: [{type: 'ok'}]
+                });
+            });
+        }
+
+        initApp();
+    </script>
+</body>
+</html>
