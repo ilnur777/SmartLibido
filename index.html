@@ -3,183 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartLibido v1.0.3</title>
+    <title>SmartLibido v1.1.0</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: #FFF9F7;
-            --surface: #FFFFFF;
-            --primary: #7B4DFF;
-            --primary-soft: #EEE8FF;
-            --text-main: #241F2E;
-            --text-sec: #7A7285;
-            --border: #EEE7F1;
-            --accent: #FF8BA7;
+            --bg: #FFF9F7; --surface: #FFFFFF; --primary: #7B4DFF; --primary-soft: #EEE8FF;
+            --text-main: #241F2E; --text-sec: #7A7285; --border: #EEE7F1; --accent: #FF8BA7;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .card { background: var(--surface); padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.04); width: 100%; max-width: 400px; margin-bottom: 16px; border: 1px solid rgba(238, 231, 241, 0.5); position: relative; }
-        h1 { color: var(--primary); font-size: 24px; margin: 0 0 8px 0; font-weight: 800; letter-spacing: -0.5px; }
-        h2 { font-size: 18px; margin: 0 0 16px 0; font-weight: 700; }
-        p { font-size: 14px; line-height: 1.5; color: var(--text-sec); margin: 0 0 20px 0; }
-        .hidden { display: none !important; }
-        .status-pill { background: var(--primary-soft); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
-        .score-box { font-size: 64px; margin: 20px 0; text-align: center; }
+        body { font-family: -apple-system, system-ui; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: var(--surface); padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.04); width: 100%; max-width: 400px; margin-bottom: 16px; border: 1px solid var(--border); }
+        h1 { color: var(--primary); font-size: 24px; margin: 0; font-weight: 800; }
+        .status-pill { background: var(--primary-soft); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        .score-box { font-size: 64px; text-align: center; margin: 20px 0; }
         .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; }
         .tab-bar { display: flex; gap: 8px; width: 100%; max-width: 400px; margin-top: 10px; }
         .btn-sub { background: var(--surface); color: var(--primary); border: 1px solid var(--primary); padding: 12px; flex: 1; border-radius: 16px; font-weight: 700; cursor: pointer; }
         .btn-sub.active { background: var(--primary); color: white; }
-        
-        /* Стили чек-ина */
         .section-label { font-size: 12px; font-weight: 800; margin: 20px 0 10px 0; color: var(--text-sec); text-transform: uppercase; display: block; text-align: left; }
         .checkin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .emoji-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 8px; font-size: 26px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
         .emoji-btn span { font-size: 11px; margin-top: 4px; color: var(--text-sec); }
         .emoji-btn.active { border-color: var(--primary); background: var(--primary-soft); }
-
-        /* Календарь */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); }
-        .day.m { background: #FFE8EC; color: #FF4D77; }
-        .day.o { background: #F1F0FF; color: var(--primary); }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <!-- OWNER APP -->
-    <div id="owner-app" class="hidden" style="width:100%; max-width:400px;">
+    <div id="owner-app" style="width:100%; max-width:400px;">
+        <!-- MAIN -->
         <div id="screen-main" class="card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h1>SmartLibido</h1>
                 <div class="status-pill">Личный</div>
             </div>
-            <div id="phase-title" style="color:var(--accent); font-weight:800; font-size:20px; text-align:left;">Фолликулярная фаза</div>
+            <div id="phase-title" style="color:var(--accent); font-weight:800; font-size:20px;">Фолликулярная фаза</div>
             <div id="main-emoji" class="score-box">🌤</div>
-            <p id="main-hint">Прогноз загружается...</p>
+            <p id="main-hint">Загрузка прогноза...</p>
         </div>
 
+        <!-- CHECKIN -->
         <div id="screen-checkin" class="card hidden">
             <h2>Чек-ин</h2>
-            <span class="section-label">Либидо</span>
-            <div class="checkin-grid">
-                <div class="emoji-btn" onclick="setV('libido', 'high', this)">🔥<span>Выс</span></div>
-                <div class="emoji-btn active" onclick="setV('libido', 'mid', this)">🌤<span>Срд</span></div>
-                <div class="emoji-btn" onclick="setV('libido', 'low', this)">🌙<span>Низ</span></div>
+            <span class="section-label">Ваше либидо</span>
+            <div class="checkin-grid" id="libido-grid">
+                <div class="emoji-btn" onclick="setVal('libido', 'high', this)">🔥<span>Высокое</span></div>
+                <div class="emoji-btn active" onclick="setVal('libido', 'mid', this)">🌤<span>Среднее</span></div>
+                <div class="emoji-btn" onclick="setVal('libido', 'low', this)">🌙<span>Низкое</span></div>
             </div>
-            <button class="btn-main" style="margin-top:20px;" onclick="saveCheck()">Сохранить</button>
+            <span class="section-label">Энергия</span>
+            <div class="checkin-grid" id="energy-grid">
+                <div class="emoji-btn" onclick="setVal('energy', 'high', this)">🔋<span>Высокая</span></div>
+                <div class="emoji-btn active" onclick="setVal('energy', 'mid', this)">⚡<span>Норма</span></div>
+                <div class="emoji-btn" onclick="setVal('energy', 'low', this)">🪫<span>Мало</span></div>
+            </div>
+            <button class="btn-main" style="margin-top:24px;" onclick="syncWithServer()">Сохранить и оповестить мужа</button>
         </div>
 
+        <!-- SHARING (TEXT MODE) -->
         <div id="screen-sharing" class="card hidden">
-            <h2>Для Партнера</h2>
-            <p>Скопируйте ссылку ниже и отправьте её мужу. Она откроет для него экран заботы.</p>
-            <button class="btn-main" onclick="copyInvite()">🔗 Скопировать ссылку</button>
+            <h2>Связь с партнером</h2>
+            <p>Партнеру <b>не нужно</b> устанавливать приложение. Он будет получать уведомления о твоем состоянии прямо в чат с ботом.</p>
+            <div style="background:#F8F6FF; padding:15px; border-radius:16px; border:1px dashed var(--primary); margin-bottom:20px;">
+                <p style="margin:0; font-size:12px; color:var(--primary); font-weight:700;">ИНСТРУКЦИЯ ДЛЯ МУЖА:</p>
+                <p style="margin:5px 0 0 0; font-size:13px; color:#444;">1. Кликнуть по ссылке инвайту.<br>2. Нажать кнопку "Start" в боте.</p>
+            </div>
+            <button class="btn-main" onclick="copyTextInvite()">🔗 Скопировать ссылку-инвайт</button>
         </div>
 
         <div class="tab-bar">
-            <button class="btn-sub active" onclick="showS('screen-main', this)">Главная</button>
-            <button class="btn-sub" onclick="showS('screen-checkin', this)">Чек-ин</button>
-            <button class="btn-sub" onclick="showS('screen-sharing', this)">Связь</button>
+            <button class="btn-sub active" onclick="showSc('screen-main', this)">Главная</button>
+            <button class="btn-sub" onclick="showSc('screen-checkin', this)">Чек-ин</button>
+            <button class="btn-sub" onclick="showSc('screen-sharing', this)">Связь</button>
         </div>
     </div>
 
-    <!-- PARTNER APP -->
-    <div id="partner-app" class="hidden" style="width:100%; max-width:400px;">
-        <div class="card">
-            <h1 style="color:#0077CC;">SmartLibido <span>Care</span></h1>
-            <p>Экран заботы для партнера</p>
-            <div id="p-emoji" class="score-box">🧘</div>
-            <h2 id="p-title" style="color:var(--primary); text-align:center;">День бережности</h2>
-            <p id="p-msg" style="background:#EEF8FF; padding:15px; border-radius:16px; color:#444;">Загрузка данных...</p>
-        </div>
-    </div>
-
-    <!-- ONBOARDING -->
-    <div id="onboarding" class="hidden" style="width:100%; max-width:400px;">
-        <div class="card">
-            <h1>Привет!</h1>
-            <p>Давай настроим твой цикл.</p>
-            <input type="date" id="start-date" style="width:100%; padding:12px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd;">
-            <button class="btn-main" onclick="finishOB()">Начать работу</button>
-        </div>
+    <!-- ONBOARDING (IF NEW) -->
+    <div id="onboarding" class="card hidden" style="width:100%; max-width:400px;">
+        <h1>Настройка цикла</h1>
+        <p>Укажи дату начала последних месячных:</p>
+        <input type="date" id="start-date" style="width:100%; padding:14px; border-radius:14px; border:1px solid #ddd; margin-bottom:20px;">
+        <button class="btn-main" onclick="saveOB()">Начать работу</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        let data = JSON.parse(localStorage.getItem('sl_v3')) || null;
-        let libido = 'mid';
+        let state = JSON.parse(localStorage.getItem('sl_state')) || null;
+        let daily = { libido: 'mid', energy: 'mid' };
+
+        // ПУТЬ К ТВОЕМУ СЕРВЕРУ (замени на реальный URL туннеля или локальный IP)
+        const API_URL = "http://localhost:3000"; 
 
         function init() {
-            // КЛЮЧЕВОЙ МОМЕНТ: Телеграм передает startapp в initDataUnsafe
-            const startParam = tg.initDataUnsafe.start_param;
-            
-            if (startParam && startParam.includes('invite')) {
-                // МЫ В РЕЖИМЕ ПАРТНЕРА
-                renderPartner(startParam);
+            if (!state) {
+                document.getElementById('onboarding').classList.remove('hidden');
+                document.getElementById('owner-app').classList.add('hidden');
             } else {
-                // МЫ В РЕЖИМЕ ХОЗЯЙКИ
-                if (!data) {
-                    document.getElementById('onboarding').classList.remove('hidden');
-                } else {
-                    document.getElementById('owner-app').classList.remove('hidden');
-                    updateMain();
-                }
+                updateUI();
             }
         }
 
-        function finishOB() {
+        function saveOB() {
             const d = document.getElementById('start-date').value;
             if (!d) return alert('Выбери дату!');
-            data = { start: d, len: 28 };
-            localStorage.setItem('sl_v3', JSON.stringify(data));
+            state = { start: d, len: 28 };
+            localStorage.setItem('sl_state', JSON.stringify(state));
             location.reload();
         }
 
-        function updateMain() {
-            const start = new Date(data.start);
+        function updateUI() {
+            const start = new Date(state.start);
             const now = new Date();
             const diff = Math.floor((now - start) / (1000*60*60*24));
-            const day = (diff % data.len) + 1;
+            const day = (diff % state.len) + 1;
             
-            let phase = "Фолликулярная";
-            let emoji = "🌤";
+            let phase = "Фолликулярная"; let emoji = "🌤";
             if (day <= 5) { phase = "Менструация"; emoji = "🌙"; }
             if (day >= 12 && day <= 16) { phase = "Овуляция"; emoji = "🔥"; }
             
             document.getElementById('phase-title').innerText = `${phase} (день ${day})`;
             document.getElementById('main-emoji').innerText = emoji;
+            document.getElementById('main-hint').innerText = "Прогноз пересчитан. Твои данные в безопасности.";
         }
 
-        function setV(f, v, el) {
-            libido = v;
+        function setVal(f, v, el) {
+            daily[f] = v;
             el.parentElement.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
+            tg.HapticFeedback.impactOccurred('light');
         }
 
-        function saveCheck() {
-            tg.showPopup({ title: 'Готово', message: 'Данные сохранены', buttons: [{type:'ok'}] });
-        }
-
-        function showS(id, el) {
+        function showSc(id, el) {
             document.querySelectorAll('#owner-app > .card').forEach(c => c.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
             document.querySelectorAll('.btn-sub').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
+            tg.HapticFeedback.selectionChanged();
         }
 
-        function copyInvite() {
-            // Генерируем ссылку. Заменяем SmartLibido_test_bot на твой реальный юзернейм если он другой
-            const link = `https://t.me/SmartLibido_test_bot/app?startapp=invite_owner123`;
-            navigator.clipboard.writeText(link).then(() => {
-                tg.showPopup({ title: 'Скопировано', message: 'Отправьте эту ссылку мужу в ЛС.' });
+        function copyTextInvite() {
+            const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "user123";
+            // Формируем простую ссылку на БОТА с параметром связи
+            const botLink = `https://t.me/SmartLibido_test_bot?start=link_${userId}`;
+            navigator.clipboard.writeText(botLink).then(() => {
+                tg.showPopup({ title: 'Скопировано', message: 'Отправь это мужу. Он просто нажмет "Start" и всё заработает.' });
             });
         }
 
-        function renderPartner(param) {
-            document.getElementById('partner-app').classList.remove('hidden');
-            // Здесь будет логика расшифровки данных из owner123
-            document.getElementById('p-msg').innerText = "Сегодня твоя партнерша чувствует себя стабильно. Хорошее время для совместного отдыха.";
+        function syncWithServer() {
+            const userId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : "user123";
+            const btn = document.querySelector('#screen-checkin .btn-main');
+            btn.innerText = "Оповещаем мужа...";
+
+            fetch(`${API_URL}/api/update-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    owner_id: userId,
+                    libido: daily.libido,
+                    energy: daily.energy,
+                    date: state.start,
+                    len: state.len
+                })
+            })
+            .then(r => r.json())
+            .then(d => {
+                btn.innerText = "Муж оповещен! ✅";
+                setTimeout(() => btn.innerText = "Сохранить и оповестить мужа", 2000);
+            })
+            .catch(e => {
+                btn.innerText = "Ошибка сервера ❌";
+                setTimeout(() => btn.innerText = "Сохранить и оповестить мужа", 2000);
+            });
         }
 
         init();
