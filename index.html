@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartLibido MVP v1.0.2</title>
+    <title>SmartLibido v1.0.3</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -16,599 +16,170 @@
             --border: #EEE7F1;
             --accent: #FF8BA7;
         }
-        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .card {
-            background: var(--surface);
-            padding: 24px;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(123,77,255,0.04);
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(238, 231, 241, 0.5);
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text-main); margin: 0; padding: 16px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .card { background: var(--surface); padding: 24px; border-radius: 24px; box-shadow: 0 10px 30px rgba(123,77,255,0.04); width: 100%; max-width: 400px; margin-bottom: 16px; border: 1px solid rgba(238, 231, 241, 0.5); position: relative; }
         h1 { color: var(--primary); font-size: 24px; margin: 0 0 8px 0; font-weight: 800; letter-spacing: -0.5px; }
-        h2 { font-size: 18px; margin: 0 0 16px 0; text-align: left; font-weight: 700; }
+        h2 { font-size: 18px; margin: 0 0 16px 0; font-weight: 700; }
         p { font-size: 14px; line-height: 1.5; color: var(--text-sec); margin: 0 0 20px 0; }
-        
         .hidden { display: none !important; }
-
-        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .status-pill { background: var(--primary-soft); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .phase-badge { color: var(--accent); font-weight: 800; font-size: 20px; margin: 12px 0 6px 0; }
-        .score-box { font-size: 56px; margin: 16px 0; }
-        .hint-text { font-size: 14px; color: var(--text-sec); line-height: 1.6; background: #FFFDFD; padding: 12px; border-radius: 16px; border: 1px solid var(--border); }
-
-        .section-label { text-align: left; font-size: 12px; font-weight: 800; margin: 24px 0 10px 0; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.5px; display: block; }
-        .checkin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .emoji-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 8px; font-size: 26px; cursor: pointer; transition: all 0.25s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-        .emoji-btn span { font-size: 11px; color: var(--text-sec); font-weight: 600; }
-        .emoji-btn.active { border-color: var(--primary); background: var(--primary-soft); transform: scale(1.03); }
-        .emoji-btn.active span { color: var(--primary); }
-
-        .needs-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-        .need-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 12px 0; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
-        .need-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 600; }
-        .switch { position: relative; display: inline-block; width: 46px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #E2DDF0; transition: .3s; border-radius: 30px; }
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(20px); }
-
-        .preview-box { background: #FAF9FF; border: 1.5px dashed var(--primary); padding: 18px; border-radius: 20px; margin-top: 24px; text-align: left; }
-        .preview-box h3 { font-size: 13px; color: var(--primary); margin: 0 0 10px 0; font-weight: 800; text-transform: uppercase; }
-
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-        .weekday-label { font-size: 11px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; }
-        .day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; position: relative; background: var(--surface); }
-        .day.empty { border: none; background: transparent; cursor: default; }
-        .day.m { background: #FFE8EC; color: #FF4D77; border-color: #FFCCD5; }
-        .day.o { background: #F1F0FF; color: var(--primary); border-color: #DCD8FF; }
-        .day.today { border: 2.5px solid var(--primary); font-weight: 800; }
-
+        .status-pill { background: var(--primary-soft); color: var(--primary); padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        .score-box { font-size: 64px; margin: 20px 0; text-align: center; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 16px; font-weight: 700; font-size: 15px; cursor: pointer; }
         .tab-bar { display: flex; gap: 8px; width: 100%; max-width: 400px; margin-top: 10px; }
-        button { font-family: inherit; font-size: 15px; font-weight: 700; border-radius: 16px; cursor: pointer; transition: all 0.2s; }
-        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; }
-        .btn-main.activated { background: #4DFF9F; color: #164627; }
-        .btn-sub { background: var(--surface); color: var(--primary); border: 1px solid var(--primary); padding: 12px; flex: 1; }
+        .btn-sub { background: var(--surface); color: var(--primary); border: 1px solid var(--primary); padding: 12px; flex: 1; border-radius: 16px; font-weight: 700; cursor: pointer; }
         .btn-sub.active { background: var(--primary); color: white; }
+        
+        /* Стили чек-ина */
+        .section-label { font-size: 12px; font-weight: 800; margin: 20px 0 10px 0; color: var(--text-sec); text-transform: uppercase; display: block; text-align: left; }
+        .checkin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .emoji-btn { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 12px 8px; font-size: 26px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+        .emoji-btn span { font-size: 11px; margin-top: 4px; color: var(--text-sec); }
+        .emoji-btn.active { border-color: var(--primary); background: var(--primary-soft); }
 
-        .form-group { text-align: left; margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; font-size: 14px; }
-        input[type="date"] { width: 100%; padding: 14px; border: 1.5px solid var(--border); border-radius: 14px; font-size: 16px; background: white; font-family: inherit; }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
-        .modal-content { background: white; border-radius: 24px; padding: 24px; width: 100%; max-width: 360px; text-align: center; }
-
-        .partner-view-header { background: #EEF8FF; color: #0077CC; padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 800; margin-bottom: 20px; display: inline-block; }
-        .partner-status-msg { font-size: 16px; line-height: 1.6; font-weight: 600; margin: 16px 0; text-align: left; }
+        /* Календарь */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+        .day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; border-radius: 12px; border: 1px solid var(--border); background: var(--surface); }
+        .day.m { background: #FFE8EC; color: #FF4D77; }
+        .day.o { background: #F1F0FF; color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <!-- ================= КАНАЛ ХОЗЯЙКИ (OWNER) ================= -->
+    <!-- OWNER APP -->
     <div id="owner-app" class="hidden" style="width:100%; max-width:400px;">
         <div id="screen-main" class="card">
-            <div class="status-header">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
                 <h1>SmartLibido</h1>
-                <div class="status-pill">● Приватно</div>
+                <div class="status-pill">Личный</div>
             </div>
-            <div id="today-cycle-day" style="font-size: 14px; color: var(--text-sec); font-weight: 700;">День цикла: ...</div>
-            <div id="today-phase" class="phase-badge">...</div>
-            <div id="today-score" class="score-box">🌤</div>
-            <div id="today-hint" class="hint-text">Загрузка...</div>
+            <div id="phase-title" style="color:var(--accent); font-weight:800; font-size:20px; text-align:left;">Фолликулярная фаза</div>
+            <div id="main-emoji" class="score-box">🌤</div>
+            <p id="main-hint">Прогноз загружается...</p>
         </div>
 
         <div id="screen-checkin" class="card hidden">
-            <h2>Ежедневный самочек-ин</h2>
-            <span class="section-label">Желание / Либидо</span>
-            <div class="checkin-grid" id="grid-libido">
-                <div class="emoji-btn" onclick="setDaily('libido', 'high', this)">🔥<span>Высокое</span></div>
-                <div class="emoji-btn" onclick="setDaily('libido', 'mid', this)">🌤<span>Среднее</span></div>
-                <div class="emoji-btn" onclick="setDaily('libido', 'low', this)">🌙<span>Низкое</span></div>
+            <h2>Чек-ин</h2>
+            <span class="section-label">Либидо</span>
+            <div class="checkin-grid">
+                <div class="emoji-btn" onclick="setV('libido', 'high', this)">🔥<span>Выс</span></div>
+                <div class="emoji-btn active" onclick="setV('libido', 'mid', this)">🌤<span>Срд</span></div>
+                <div class="emoji-btn" onclick="setV('libido', 'low', this)">🌙<span>Низ</span></div>
             </div>
-
-            <span class="section-label">Энергия</span>
-            <div class="checkin-grid" id="grid-energy">
-                <div class="emoji-btn" onclick="setDaily('energy', 'high', this)">🔋<span>Много</span></div>
-                <div class="emoji-btn" onclick="setDaily('energy', 'mid', this)">⚡<span>Норм</span></div>
-                <div class="emoji-btn" onclick="setDaily('energy', 'low', this)">🪫<span>Мало</span></div>
-            </div>
-
-            <span class="section-label">Качество сна</span>
-            <div class="checkin-grid" id="grid-sleep">
-                <div class="emoji-btn" onclick="setDaily('sleep', 'good', this)">😴<span>Отличный</span></div>
-                <div class="emoji-btn" onclick="setDaily('sleep', 'mid', this)">😐<span>Обычный</span></div>
-                <div class="emoji-btn" onclick="setDaily('sleep', 'bad', this)">🥱<span>Плохой</span></div>
-            </div>
-
-            <span class="section-label">Уровень стресса</span>
-            <div class="checkin-grid" id="grid-stress">
-                <div class="emoji-btn" onclick="setDaily('stress', 'low', this)">🟢<span>Низкий</span></div>
-                <div class="emoji-btn" onclick="setDaily('stress', 'mid', this)">🟡<span>Средний</span></div>
-                <div class="emoji-btn" onclick="setDaily('stress', 'high', this)">🔴<span>Высокий</span></div>
-            </div>
-
-            <span class="section-label">Выбери потребности сегодня</span>
-            <div class="needs-grid" id="grid-needs">
-                <div class="need-btn" onclick="toggleNeed('🤗 Нежность', this)">🤗 Нежность</div>
-                <div class="need-btn" onclick="toggleNeed('🧘 Покой', this)">🧘 Покой</div>
-                <div class="need-btn" onclick="toggleNeed('💬 Разговор', this)">💬 Разговор</div>
-                <div class="need-btn" onclick="toggleNeed('🛌 Отдых', this)">🛌 Отдых</div>
-                <div class="need-btn" onclick="toggleNeed('💞 Близость', this)">💞 Близость</div>
-                <div class="need-btn" onclick="toggleNeed('🚫 Пространство', this)">🚫 Свобода</div>
-            </div>
-            <button class="btn-main" style="margin-top: 24px;" onclick="saveCheckIn()">Сохранить чек-ин</button>
-        </div>
-
-        <div id="screen-calendar" class="card hidden">
-            <div class="calendar-header">
-                <h2 style="margin:0;">Цикловой календарь</h2>
-                <div style="font-size:13px; font-weight:700; color:var(--primary);" id="cal-month-name">...</div>
-            </div>
-            <div class="calendar-grid">
-                <div class="weekday-label">Пн</div><div class="weekday-label">Вт</div><div class="weekday-label">Ср</div><div class="weekday-label">Чт</div><div class="weekday-label">Пт</div><div class="weekday-label">Сб</div><div class="weekday-label">Вс</div>
-            </div>
-            <div class="calendar-grid" id="calendar-days-box"></div>
+            <button class="btn-main" style="margin-top:20px;" onclick="saveCheck()">Сохранить</button>
         </div>
 
         <div id="screen-sharing" class="card hidden">
-            <h2>Настройки шеринга с мужем</h2>
-            <div class="switch-row"><span>Общий статус</span><label class="switch"><input type="checkbox" id="sw-status" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
-            <div class="switch-row"><span>Делиться энергией</span><label class="switch"><input type="checkbox" id="sw-energy" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
-            <div class="switch-row"><span>Делиться сном</span><label class="switch"><input type="checkbox" id="sw-sleep" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
-            <div class="switch-row"><span>Делиться потребностями</span><label class="switch"><input type="checkbox" id="sw-needs" checked onchange="buildPartnerPreview()"><span class="slider"></span></label></div>
-
-            <div class="preview-box">
-                <h3>Предпросмотр экрана мужа</h3>
-                <div id="partner-preview-render"></div>
-            </div>
-
-            <button class="btn-main" style="margin-top: 24px;" onclick="generatePartnerLink()">Создать инвайт-ссылку</button>
-            <button class="btn-main btn-sec" style="margin-top: 10px;" onclick="triggerEmergencyPause()">Мгновенная пауза передачи ⏸</button>
+            <h2>Для Партнера</h2>
+            <p>Скопируйте ссылку ниже и отправьте её мужу. Она откроет для него экран заботы.</p>
+            <button class="btn-main" onclick="copyInvite()">🔗 Скопировать ссылку</button>
         </div>
 
         <div class="tab-bar">
-            <button class="btn-sub active" id="tab-main" onclick="switchTab('screen-main')">Главная</button>
-            <button class="btn-sub" id="tab-checkin" onclick="switchTab('screen-checkin')">Чек-ин</button>
-            <button class="btn-sub" id="tab-calendar" onclick="switchTab('screen-calendar')">Календарь</button>
-            <button class="btn-sub" id="tab-sharing" onclick="switchTab('screen-sharing')">Мужу</button>
+            <button class="btn-sub active" onclick="showS('screen-main', this)">Главная</button>
+            <button class="btn-sub" onclick="showS('screen-checkin', this)">Чек-ин</button>
+            <button class="btn-sub" onclick="showS('screen-sharing', this)">Связь</button>
         </div>
     </div>
 
-    <!-- ================= КАНАЛ ПАРТНЕРА (PARTNER) ================= -->
+    <!-- PARTNER APP -->
     <div id="partner-app" class="hidden" style="width:100%; max-width:400px;">
         <div class="card">
-            <div class="status-header">
-                <h1>SmartLibido</h1>
-                <div class="partner-view-header">Канал Заботы</div>
-            </div>
-            <div id="partner-dyn-emoji" style="font-size:64px; margin:20px 0; text-align:center;">🌤</div>
-            <h2 id="partner-dyn-title" style="text-align:center; font-size:22px; color:var(--primary); margin-bottom:20px;">...</h2>
-            <div class="partner-status-msg" id="partner-dyn-msg">Загрузка данных...</div>
-            <div id="partner-dyn-metrics" style="border-top:1px solid var(--border); padding-top:15px; margin-top:20px; text-align:left;"></div>
-            
-            <!-- КНОПКА ПОДКЛЮЧЕНИЯ УВЕДОМЛЕНИЙ ПАРТНЕРА -->
-            <button class="btn-main" id="btn-partner-notify" style="margin-top:20px; background: #FF5E8C;" onclick="partnerSubscribe()">🔔 Получать пуши в Telegram</button>
+            <h1 style="color:#0077CC;">SmartLibido <span>Care</span></h1>
+            <p>Экран заботы для партнера</p>
+            <div id="p-emoji" class="score-box">🧘</div>
+            <h2 id="p-title" style="color:var(--primary); text-align:center;">День бережности</h2>
+            <p id="p-msg" style="background:#EEF8FF; padding:15px; border-radius:16px; color:#444;">Загрузка данных...</p>
         </div>
     </div>
 
-    <!-- ================= ОНБОРДИНГ ================= -->
-    <div id="onboarding-flow" class="hidden" style="width:100%; max-width:400px;">
-        <div id="ob-welcome" class="card">
-            <h1>SmartLibido</h1>
-            <p>Приватный календарь самонаблюдения.</p>
-            <button class="btn-main" onclick="obGoTo('ob-privacy')">Начать</button>
-        </div>
-        <div id="ob-privacy" class="card hidden">
-            <h1>Приватность</h1>
-            <label style="display:flex; gap:12px; margin-bottom:14px;"><input type="checkbox" class="ob-check" id="ob-c1"> 18+ лет</label>
-            <label style="display:flex; gap:12px; margin-bottom:14px;"><input type="checkbox" class="ob-check" id="ob-c2"> Согласна с приватностью</label>
-            <label style="display:flex; gap:12px; margin-bottom:14px;"><input type="checkbox" class="ob-check" id="ob-c3"> Не контрацепция</label>
-            <button class="btn-main" id="ob-btn-p" disabled onclick="obGoTo('ob-cycle')">Продолжить</button>
-        </div>
-        <div id="ob-cycle" class="card hidden">
-            <h1>Настройка цикла</h1>
-            <input type="date" id="cycle-start-date" style="margin-bottom:20px;">
-            <button class="btn-main" onclick="completeOnboarding()">Создать календарь</button>
-        </div>
-    </div>
-
-    <!-- ДЕБАГ-КНОПКА -->
-    <div style="position:fixed; bottom:5px; right:10px; font-size:10px; color:var(--text-sec); opacity:0.3; cursor:pointer;" onclick="debuggerToggleRole()">
-        [ v1.0.2 | Смена роли ]
-    </div>
-
-    <div id="cal-modal" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3 id="modal-title"></h3>
-            <div id="modal-emoji" style="font-size:48px;"></div>
-            <p id="modal-text"></p>
-            <button class="btn-main" onclick="closeModal()">Понятно</button>
+    <!-- ONBOARDING -->
+    <div id="onboarding" class="hidden" style="width:100%; max-width:400px;">
+        <div class="card">
+            <h1>Привет!</h1>
+            <p>Давай настроим твой цикл.</p>
+            <input type="date" id="start-date" style="width:100%; padding:12px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd;">
+            <button class="btn-main" onclick="finishOB()">Начать работу</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        tg.ready();
 
-        let state = {
-            owner: JSON.parse(localStorage.getItem('sl_data')) || null,
-            daily: JSON.parse(localStorage.getItem('sl_daily')) || { libido: 'mid', energy: 'mid', sleep: 'mid', stress: 'low', needs: [] },
-            sharing: { status: true, energy: true, sleep: true, needs: true }
-        };
-
-        let currentOwnerIdForPartner = "";
-
-        // ПУТЬ К ДЕПЛОЕННОМУ БЭКЕНДУ НА НОУТЕ //
-        const BACKEND_BASE = "http://localhost:3000"; 
+        let data = JSON.parse(localStorage.getItem('sl_v3')) || null;
+        let libido = 'mid';
 
         function init() {
-            const webAppStartParam = tg.initDataUnsafe.start_param;
-            const urlParams = new URLSearchParams(window.location.search);
+            // КЛЮЧЕВОЙ МОМЕНТ: Телеграм передает startapp в initDataUnsafe
+            const startParam = tg.initDataUnsafe.start_param;
             
-            const isPartner = webAppStartParam || urlParams.get('partner') === 'true' || window.location.hash.includes('partner');
-
-            if (isPartner) {
-                let activeParams = urlParams;
-                if (webAppStartParam) {
-                    try {
-                        activeParams = new URLSearchParams(atob(webAppStartParam));
-                    } catch(e) {
-                        // Резервный парсинг если ТГ не закодировал
-                        activeParams = new URLSearchParams(webAppStartParam);
-                    }
-                }
-                
-                // Сохраняем ID хозяйки для подписки на пуши
-                const ownerIdFromParam = activeParams.get('owner_id') || activeParams.get('date') ? activeParams.get('date').slice(0, 7) : ""; 
-                // Для надежности используем переданный owner_id или хеш
-                currentOwnerIdForPartner = activeParams.get('owner_id') || "owner123";
-
-                renderPartnerScreen(activeParams);
+            if (startParam && startParam.includes('invite')) {
+                // МЫ В РЕЖИМЕ ПАРТНЕРА
+                renderPartner(startParam);
             } else {
-                if (!state.owner) {
-                    showOnboarding();
+                // МЫ В РЕЖИМЕ ХОЗЯЙКИ
+                if (!data) {
+                    document.getElementById('onboarding').classList.remove('hidden');
                 } else {
                     document.getElementById('owner-app').classList.remove('hidden');
-                    calculateOwnerPredictions();
-                    renderCalendarGrid();
-                    restoreCheckInUI();
-                    buildPartnerPreview();
+                    updateMain();
                 }
             }
         }
 
-        // ================= ШЕРИНГ И СБОРКА ССЫЛОК =================
-        function generatePartnerLink() {
-            const dateStr = state.owner.date;
-            const cycleLen = state.owner.len;
-            
-            const shStatus = document.getElementById('sw-status').checked;
-            const shEnergy = document.getElementById('sw-energy').checked;
-            const shSleep = document.getElementById('sw-sleep').checked;
-            const shNeeds = document.getElementById('sw-needs').checked;
-
-            const ownerTgId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "owner123";
-
-            // Запаковываем все параметры в Base64 для нативного start_param Telegram!
-            const rawPayload = `partner=true&owner_id=${ownerTgId}&date=${dateStr}&len=${cycleLen}&v_en=${state.daily.energy}&v_sl=${state.daily.sleep}&v_nd=${encodeURIComponent(state.daily.needs.join(','))}&sh_st=${shStatus}&sh_en=${shEnergy}&sh_sl=${shSleep}&sh_nd=${shNeeds}`;
-            const base64Payload = btoa(rawPayload);
-
-            const botUsername = "SmartLibido_test_bot";
-            const nativeTelegramLink = `https://t.me/${botUsername}/app?startapp=${base64Payload}`;
-
-            navigator.clipboard.writeText(nativeTelegramLink).then(() => {
-                tg.showPopup({
-                    title: 'Ссылка-инвайт создана! 🔗',
-                    message: 'Абсолютно безопасная ссылка скопирована. Отправь её мужу в Телеграм. Чат откроется прямо на новом экране заботы!',
-                    buttons: [{type: 'ok'}]
-                });
-            });
-        }
-
-        // КЛИК ПАРТНЕРА ДЛЯ СВЯЗИ ЧАТ-БОТА
-        function partnerSubscribe() {
-            const botUsername = "SmartLibido_test_bot";
-            const link = `https://t.me/${botUsername}?start=link_${currentOwnerIdForPartner}`;
-            tg.openTelegramLink(link);
-        }
-
-        // ================= ОФФЛАЙН/ОНЛАЙН ЧЕК-ИН С ПУШЕМ НА СЕРВЕР =================
-        function saveCheckIn() {
-            localStorage.setItem('sl_daily', JSON.stringify(state.daily));
-            
-            const ownerTgId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "owner123";
-            const start = state.owner ? state.owner.date : "";
-            const len = state.owner ? state.owner.len : 28;
-
-            const shStatus = document.getElementById('sw-status') ? document.getElementById('sw-status').checked : true;
-            const shEnergy = document.getElementById('sw-energy') ? document.getElementById('sw-energy').checked : true;
-            const shSleep = document.getElementById('sw-sleep') ? document.getElementById('sw-sleep').checked : true;
-            const shNeeds = document.getElementById('sw-needs') ? document.getElementById('sw-needs').checked : true;
-
-            // Отображаем загрузку на кнопке
-            const btn = document.querySelector('#screen-checkin .btn-main');
-            const originalText = btn.innerText;
-            btn.innerText = "Синхронизация с сервером...";
-
-            // Отправляем пакет на бэкенд, чтобы он мгновенно выслал партнеру Пуш-СМС в ТГ!
-            fetch(`${BACKEND_BASE}/api/update-status`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    owner_id: ownerTgId,
-                    libido: state.daily.libido,
-                    energy: state.daily.energy,
-                    sleep: state.daily.sleep,
-                    needs: state.daily.needs,
-                    sh_st: shStatus,
-                    sh_en: shEnergy,
-                    sh_sl: shSleep,
-                    sh_nd: shNeeds,
-                    date: start,
-                    len: len
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                btn.innerText = "Обновлено на сервере! ✅";
-                setTimeout(() => { btn.innerText = originalText; }, 2000);
-                
-                tg.showPopup({
-                    title: 'Сохранено! 🌸',
-                    message: data.partner_connected 
-                        ? 'Показатели записаны. Муж только что получил приватное пуш-уведомление в свой Телеграм!' 
-                        : 'Показатели записаны локально. Муж пока не подключил пуши (дать ему ссылку во вкладке "Мужу").',
-                    buttons: [{type: 'ok'}]
-                });
-            })
-            .catch(err => {
-                // Если нет интернета или ноут спит, сохраняем в оффлайн-сценарий
-                btn.innerText = "Сохранено локально! 📶";
-                setTimeout(() => { btn.innerText = originalText; }, 2000);
-                
-                tg.showPopup({
-                    title: 'Записано локально 💾',
-                    message: 'Данные занесены на устройство. Как только вернется интернет-соединение или включится сервер на ноуте, показатели отправят пуш партнеру.',
-                    buttons: [{type: 'ok'}]
-                });
-            });
-        }
-
-        // ================= ВСЁ ОСТАЛЬНОЕ БЕЗ ИЗМЕНЕНИЙ (СТАБИЛЬНОСТЬ) =================
-        function showOnboarding() {
-            document.getElementById('onboarding-flow').classList.remove('hidden');
-            document.getElementById('ob-welcome').classList.remove('hidden');
-            document.querySelectorAll('.ob-check').forEach(ch => {
-                ch.addEventListener('change', () => {
-                    const c1 = document.getElementById('ob-c1').checked;
-                    const c2 = document.getElementById('ob-c2').checked;
-                    const c3 = document.getElementById('ob-c3').checked;
-                    document.getElementById('ob-btn-p').disabled = !(c1 && c2 && c3);
-                });
-            });
-        }
-
-        function obGoTo(id) {
-            document.querySelectorAll('#onboarding-flow > .card').forEach(c => c.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-
-        function completeOnboarding() {
-            const dateInput = document.getElementById('cycle-start-date').value;
-            if (!dateInput) return alert('Укажите дату.');
-            state.owner = { date: dateInput, len: 28, period: 5 };
-            localStorage.setItem('sl_data', JSON.stringify(state.owner));
+        function finishOB() {
+            const d = document.getElementById('start-date').value;
+            if (!d) return alert('Выбери дату!');
+            data = { start: d, len: 28 };
+            localStorage.setItem('sl_v3', JSON.stringify(data));
             location.reload();
         }
 
-        function predictDay(offsetDays) {
-            if (!state.owner) return null;
-            const start = new Date(state.owner.date);
+        function updateMain() {
+            const start = new Date(data.start);
             const now = new Date();
-            now.setDate(now.getDate() + offsetDays);
-            const diffTime = Math.abs(now - start);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            const cycleDay = (diffDays % state.owner.len) || 1;
-
-            let phase = 'Фолликулярная'; let emoji = '🌤'; let baseScore = 50; let level = 'warm';
-            let hint = 'Организм копит ресурсы. Благоприятное время для физической близости и разговоров.';
-
-            if (cycleDay <= 5) {
-                phase = 'Менструация'; emoji = '🌙'; baseScore = 15; level = 'low'; hint = 'Ресурс на минимуме. Наслаждайтесь покоем.';
-            } else if (cycleDay > 5 && cycleDay < 12) {
-                phase = 'Фолликулярная'; emoji = '🌤'; baseScore = 55; level = 'warm'; hint = 'Отличное время для подъема настроения.';
-            } else if (cycleDay >= 12 && cycleDay <= 16) {
-                phase = 'Овуляция'; emoji = '🔥'; baseScore = 90; level = 'high'; hint = 'Максимальная степень тепла и влечения!';
-            } else {
-                phase = 'Лютеиновая'; emoji = '🧘'; baseScore = 40; level = 'gentle'; hint = 'Снижение темпа. Окружите себя комфортом.';
-            }
-            return { cycleDay, phase, emoji, level, hint };
+            const diff = Math.floor((now - start) / (1000*60*60*24));
+            const day = (diff % data.len) + 1;
+            
+            let phase = "Фолликулярная";
+            let emoji = "🌤";
+            if (day <= 5) { phase = "Менструация"; emoji = "🌙"; }
+            if (day >= 12 && day <= 16) { phase = "Овуляция"; emoji = "🔥"; }
+            
+            document.getElementById('phase-title').innerText = `${phase} (день ${day})`;
+            document.getElementById('main-emoji').innerText = emoji;
         }
 
-        function calculateOwnerPredictions() {
-            const pred = predictDay(0);
-            if (!pred) return;
-            document.getElementById('today-cycle-day').innerText = `${pred.cycleDay}-й день цикла`;
-            document.getElementById('today-phase').innerText = `${pred.phase} фаза`;
-            document.getElementById('today-score').innerText = pred.emoji;
-            document.getElementById('today-hint').innerText = pred.hint;
-        }
-
-        function setDaily(field, value, el) {
+        function setV(f, v, el) {
+            libido = v;
             el.parentElement.querySelectorAll('.emoji-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
-            state.daily[field] = value;
-            tg.HapticFeedback.impactOccurred('medium');
-            calculateOwnerPredictions();
-            buildPartnerPreview();
         }
 
-        function toggleNeed(val, el) {
-            el.classList.toggle('active');
-            if (state.daily.needs.includes(val)) {
-                state.daily.needs = state.daily.needs.filter(n => n !== val);
-            } else {
-                state.daily.needs.push(val);
-            }
-            tg.HapticFeedback.selectionChanged();
-            buildPartnerPreview();
+        function saveCheck() {
+            tg.showPopup({ title: 'Готово', message: 'Данные сохранены', buttons: [{type:'ok'}] });
         }
 
-        function renderCalendarGrid() {
-            const box = document.getElementById('calendar-days-box');
-            if(!box) return;
-            box.innerHTML = '';
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const firstDay = new Date(year, month, 1).getDay();
-            const correctedFirstDay = firstDay === 0 ? 6 : firstDay - 1;
-            const totalDays = new Date(year, month + 1, 0).getDate();
-
-            const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-            document.getElementById('cal-month-name').innerText = `${monthNames[month]} ${year}`;
-
-            for (let i = 0; i < correctedFirstDay; i++) {
-                let cell = document.createElement('div'); cell.className = 'day empty'; box.appendChild(cell);
-            }
-            for (let i = 1; i <= totalDays; i++) {
-                let cell = document.createElement('div'); cell.className = 'day'; cell.innerText = i;
-                if (i === now.getDate()) cell.classList.add('today');
-                const diff = i - now.getDate();
-                const pred = predictDay(diff);
-                if (pred) {
-                    if (pred.cycleDay <= 5) cell.classList.add('m');
-                    else if (pred.cycleDay >= 12 && pred.cycleDay <= 16) cell.classList.add('o');
-                }
-                cell.onclick = () => {
-                    openModal(`${i} ${monthNames[month]}`, pred.emoji, `<b>Прогноз:</b> ${pred.phase} фаза.<br><br>${pred.hint}`);
-                };
-                box.appendChild(cell);
-            }
-        }
-
-        function buildPartnerPreview() {
-            const preview = document.getElementById('partner-preview-render');
-            if(!preview) return;
-            const shStatus = document.getElementById('sw-status').checked;
-            const shEnergy = document.getElementById('sw-energy').checked;
-            const shSleep = document.getElementById('sw-sleep').checked;
-            const shNeeds = document.getElementById('sw-needs').checked;
-            const pred = predictDay(0);
-
-            let html = `<div style="font-size: 32px;">${shStatus ? pred.emoji : '🌤'}</div>`;
-            html += `<b>${shStatus ? getSafePartnerTitle(pred.level) : 'Обычный день'}</b>`;
-            if (shEnergy) html += `<div>🔋 Ресурс: ${getEnergyLabel(state.daily.energy)}</div>`;
-            if (shSleep) html += `<div>😴 Сон: ${getSleepLabel(state.daily.sleep)}</div>`;
-            if (shNeeds && state.daily.needs.length > 0) html += `<div>💝 Потребность: ${state.daily.needs.join(', ')}</div>`;
-            preview.innerHTML = html;
-        }
-
-        function getSafePartnerTitle(level) {
-            if (level === 'high') return 'Яркий ресурс';
-            if (level === 'low') return 'Максимальная бережность';
-            if (level === 'gentle') return 'Нежное восстановление';
-            return 'Стабильный тонус';
-        }
-
-        function getSafePartnerMessage(level) {
-            if (level === 'high') return 'У неё пик сил и тепла. Прекрасный день для совместного времени и близости.';
-            if (level === 'low') return 'Ресурс снижен. Проявите максимум заботы, сделайте чай или помогите по дому.';
-            if (level === 'gentle') return 'Период мягкого восстановления сил. Поддержите спокойное общение.';
-            return 'Комфортный уровень ресурсов. Всё отлично.';
-        }
-
-        function renderPartnerScreen(params) {
-            document.getElementById('partner-app').classList.remove('hidden');
-            const dateStr = params.get('date');
-            const cycleLen = parseInt(params.get('len')) || 28;
-            if (dateStr) {
-                const start = new Date(dateStr);
-                const now = new Date();
-                const diffDays = Math.ceil(Math.abs(now - start) / (1000 * 60 * 60 * 24));
-                const cycleDay = (diffDays % cycleLen) || 1;
-                let level = 'warm';
-                if (cycleDay <= 5) level = 'low';
-                else if (cycleDay >= 12 && cycleDay <= 16) level = 'high';
-                else if (cycleDay > 16) level = 'gentle';
-
-                const shSt = params.get('sh_st') === 'true';
-                const shEn = params.get('sh_en') === 'true';
-                const shSl = params.get('sh_sl') === 'true';
-                const shNd = params.get('sh_nd') === 'true';
-
-                document.getElementById('partner-dyn-title').innerText = shSt ? getSafePartnerTitle(level) : 'Обычный день';
-                document.getElementById('partner-dyn-msg').innerText = getSafePartnerMessage(level);
-                
-                const emojiMap = { low: '🌙', gentle: '🧘', warm: '🌤', high: '🔥' };
-                document.getElementById('partner-dyn-emoji').innerText = shSt ? emojiMap[level] : '🌤';
-
-                let metrics = '';
-                if (shEn) metrics += `<p>🔋 <b>Энергия:</b> ${getEnergyLabel(params.get('v_en'))}</p>`;
-                if (shSl) metrics += `<p>😴 <b>Сон:</b> ${getSleepLabel(params.get('v_sl'))}</p>`;
-                
-                const decodedNd = decodeURIComponent(params.get('v_nd') || '');
-                if (shNd && decodedNd) {
-                    metrics += `<p>💝 <b>Потребность:</b> <span style="background:var(--primary-soft); color:var(--primary); padding:3px 8px; border-radius:10px;">${decodedNd}</span></p>`;
-                }
-                document.getElementById('partner-dyn-metrics').innerHTML = metrics;
-            }
-        }
-
-        function getEnergyLabel(val) { return val === 'high' ? 'Высокий' : (val === 'low' ? 'Снижен' : 'В норме'); }
-        function getSleepLabel(val) { return val === 'good' ? 'Выспалась' : (val === 'bad' ? 'Устала/Плохой сон' : 'Обычный'); }
-
-        function switchTab(id) {
-            document.querySelectorAll('#owner-app > .card').forEach(s => s.classList.add('hidden'));
-            document.querySelectorAll('.tab-bar > button').forEach(b => b.classList.remove('active'));
+        function showS(id, el) {
+            document.querySelectorAll('#owner-app > .card').forEach(c => c.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            document.getElementById('tab-' + id.split('-')[1]).classList.add('active');
-            tg.HapticFeedback.selectionChanged();
+            document.querySelectorAll('.btn-sub').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
         }
 
-        function openModal(title, emoji, text) {
-            document.getElementById('modal-title').innerText = title;
-            document.getElementById('modal-emoji').innerText = emoji;
-            document.getElementById('modal-text').innerHTML = text;
-            document.getElementById('cal-modal').classList.remove('hidden');
+        function copyInvite() {
+            // Генерируем ссылку. Заменяем SmartLibido_test_bot на твой реальный юзернейм если он другой
+            const link = `https://t.me/SmartLibido_test_bot/app?startapp=invite_owner123`;
+            navigator.clipboard.writeText(link).then(() => {
+                tg.showPopup({ title: 'Скопировано', message: 'Отправьте эту ссылку мужу в ЛС.' });
+            });
         }
 
-        function closeModal() { document.getElementById('cal-modal').classList.add('hidden'); }
-
-        function triggerEmergencyPause() {
-            tg.showPopup({ title: 'Мгновенная пауза ⏸', message: 'Передача данных мужу остановлена.', buttons: [{type:'ok'}] });
-        }
-
-        function debuggerToggleRole() {
-            const url = window.location.href.split('?')[0];
-            const testPayload = btoa('partner=true&owner_id=owner123&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true');
-            if (window.location.href.includes('partner=true') || window.location.href.includes('startapp')) {
-                window.location.href = url;
-            } else {
-                window.location.href = url + '?partner=true&owner_id=owner123&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true';
-            }
+        function renderPartner(param) {
+            document.getElementById('partner-app').classList.remove('hidden');
+            // Здесь будет логика расшифровки данных из owner123
+            document.getElementById('p-msg').innerText = "Сегодня твоя партнерша чувствует себя стабильно. Хорошее время для совместного отдыха.";
         }
 
         init();
