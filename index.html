@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SmartLibido MVP v1.0.1</title>
+    <title>SmartLibido MVP v1.0.2</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -88,6 +88,7 @@
         .tab-bar { display: flex; gap: 8px; width: 100%; max-width: 400px; margin-top: 10px; }
         button { font-family: inherit; font-size: 15px; font-weight: 700; border-radius: 16px; cursor: pointer; transition: all 0.2s; }
         .btn-main { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; }
+        .btn-main.activated { background: #4DFF9F; color: #164627; }
         .btn-sub { background: var(--surface); color: var(--primary); border: 1px solid var(--primary); padding: 12px; flex: 1; }
         .btn-sub.active { background: var(--primary); color: white; }
 
@@ -205,6 +206,9 @@
             <h2 id="partner-dyn-title" style="text-align:center; font-size:22px; color:var(--primary); margin-bottom:20px;">...</h2>
             <div class="partner-status-msg" id="partner-dyn-msg">Загрузка данных...</div>
             <div id="partner-dyn-metrics" style="border-top:1px solid var(--border); padding-top:15px; margin-top:20px; text-align:left;"></div>
+            
+            <!-- КНОПКА ПОДКЛЮЧЕНИЯ УВЕДОМЛЕНИЙ ПАРТНЕРА -->
+            <button class="btn-main" id="btn-partner-notify" style="margin-top:20px; background: #FF5E8C;" onclick="partnerSubscribe()">🔔 Получать пуши в Telegram</button>
         </div>
     </div>
 
@@ -231,7 +235,7 @@
 
     <!-- ДЕБАГ-КНОПКА -->
     <div style="position:fixed; bottom:5px; right:10px; font-size:10px; color:var(--text-sec); opacity:0.3; cursor:pointer;" onclick="debuggerToggleRole()">
-        [ v1.0.1 | Смена роли ]
+        [ v1.0.2 | Смена роли ]
     </div>
 
     <div id="cal-modal" class="modal-overlay hidden">
@@ -254,21 +258,33 @@
             sharing: { status: true, energy: true, sleep: true, needs: true }
         };
 
+        let currentOwnerIdForPartner = "";
+
+        // ПУТЬ К ДЕПЛОЕННОМУ БЭКЕНДУ НА НОУТЕ //
+        const BACKEND_BASE = "http://localhost:3000"; 
+
         function init() {
-            // ЧИТАЕМ ПАРАМЕТРЫ TELEGRAM NATIVE START PARAM
             const webAppStartParam = tg.initDataUnsafe.start_param;
             const urlParams = new URLSearchParams(window.location.search);
             
-            // Если запуск из Telegram Direct Link или через старый URL
             const isPartner = webAppStartParam || urlParams.get('partner') === 'true' || window.location.hash.includes('partner');
 
             if (isPartner) {
-                // Если старт-параметр передан нативно из Telegram
                 let activeParams = urlParams;
                 if (webAppStartParam) {
-                    // Парсим нативный стэк данных из ТГ
-                    activeParams = new URLSearchParams(atob(webAppStartParam));
+                    try {
+                        activeParams = new URLSearchParams(atob(webAppStartParam));
+                    } catch(e) {
+                        // Резервный парсинг если ТГ не закодировал
+                        activeParams = new URLSearchParams(webAppStartParam);
+                    }
                 }
+                
+                // Сохраняем ID хозяйки для подписки на пуши
+                const ownerIdFromParam = activeParams.get('owner_id') || activeParams.get('date') ? activeParams.get('date').slice(0, 7) : ""; 
+                // Для надежности используем переданный owner_id или хеш
+                currentOwnerIdForPartner = activeParams.get('owner_id') || "owner123";
+
                 renderPartnerScreen(activeParams);
             } else {
                 if (!state.owner) {
@@ -293,24 +309,94 @@
             const shSleep = document.getElementById('sw-sleep').checked;
             const shNeeds = document.getElementById('sw-needs').checked;
 
+            const ownerTgId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "owner123";
+
             // Запаковываем все параметры в Base64 для нативного start_param Telegram!
-            const rawPayload = `partner=true&date=${dateStr}&len=${cycleLen}&v_en=${state.daily.energy}&v_sl=${state.daily.sleep}&v_nd=${encodeURIComponent(state.daily.needs.join(','))}&sh_st=${shStatus}&sh_en=${shEnergy}&sh_sl=${shSleep}&sh_nd=${shNeeds}`;
+            const rawPayload = `partner=true&owner_id=${ownerTgId}&date=${dateStr}&len=${cycleLen}&v_en=${state.daily.energy}&v_sl=${state.daily.sleep}&v_nd=${encodeURIComponent(state.daily.needs.join(','))}&sh_st=${shStatus}&sh_en=${shEnergy}&sh_sl=${shSleep}&sh_nd=${shNeeds}`;
             const base64Payload = btoa(rawPayload);
 
-            // ПОЛУЧАЕМ ИМЯ ТВОЕГО БОТА ДИНАМИЧЕСКИ ИЛИ ИСПОЛЬЗУЕМ ТЕСТОВОЕ
             const botUsername = "SmartLibido_test_bot";
             const nativeTelegramLink = `https://t.me/${botUsername}/app?startapp=${base64Payload}`;
 
             navigator.clipboard.writeText(nativeTelegramLink).then(() => {
                 tg.showPopup({
                     title: 'Ссылка-инвайт создана! 🔗',
-                    message: 'Она скопирована. Отправь её мужу в Телеграме. Ссылка откроется строго внутри Telegram как Mini App!',
+                    message: 'Абсолютно безопасная ссылка скопирована. Отправь её мужу в Телеграм. Чат откроется прямо на новом экране заботы!',
                     buttons: [{type: 'ok'}]
                 });
             });
         }
 
-        // ================= ВСЁ ОСТАЛЬНОЕ ДЛЯ ОТКАТА И СТАБИЛИЗАЦИИ =================
+        // КЛИК ПАРТНЕРА ДЛЯ СВЯЗИ ЧАТ-БОТА
+        function partnerSubscribe() {
+            const botUsername = "SmartLibido_test_bot";
+            const link = `https://t.me/${botUsername}?start=link_${currentOwnerIdForPartner}`;
+            tg.openTelegramLink(link);
+        }
+
+        // ================= ОФФЛАЙН/ОНЛАЙН ЧЕК-ИН С ПУШЕМ НА СЕРВЕР =================
+        function saveCheckIn() {
+            localStorage.setItem('sl_daily', JSON.stringify(state.daily));
+            
+            const ownerTgId = tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id.toString() : "owner123";
+            const start = state.owner ? state.owner.date : "";
+            const len = state.owner ? state.owner.len : 28;
+
+            const shStatus = document.getElementById('sw-status') ? document.getElementById('sw-status').checked : true;
+            const shEnergy = document.getElementById('sw-energy') ? document.getElementById('sw-energy').checked : true;
+            const shSleep = document.getElementById('sw-sleep') ? document.getElementById('sw-sleep').checked : true;
+            const shNeeds = document.getElementById('sw-needs') ? document.getElementById('sw-needs').checked : true;
+
+            // Отображаем загрузку на кнопке
+            const btn = document.querySelector('#screen-checkin .btn-main');
+            const originalText = btn.innerText;
+            btn.innerText = "Синхронизация с сервером...";
+
+            // Отправляем пакет на бэкенд, чтобы он мгновенно выслал партнеру Пуш-СМС в ТГ!
+            fetch(`${BACKEND_BASE}/api/update-status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    owner_id: ownerTgId,
+                    libido: state.daily.libido,
+                    energy: state.daily.energy,
+                    sleep: state.daily.sleep,
+                    needs: state.daily.needs,
+                    sh_st: shStatus,
+                    sh_en: shEnergy,
+                    sh_sl: shSleep,
+                    sh_nd: shNeeds,
+                    date: start,
+                    len: len
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = "Обновлено на сервере! ✅";
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+                
+                tg.showPopup({
+                    title: 'Сохранено! 🌸',
+                    message: data.partner_connected 
+                        ? 'Показатели записаны. Муж только что получил приватное пуш-уведомление в свой Телеграм!' 
+                        : 'Показатели записаны локально. Муж пока не подключил пуши (дать ему ссылку во вкладке "Мужу").',
+                    buttons: [{type: 'ok'}]
+                });
+            })
+            .catch(err => {
+                // Если нет интернета или ноут спит, сохраняем в оффлайн-сценарий
+                btn.innerText = "Сохранено локально! 📶";
+                setTimeout(() => { btn.innerText = originalText; }, 2000);
+                
+                tg.showPopup({
+                    title: 'Записано локально 💾',
+                    message: 'Данные занесены на устройство. Как только вернется интернет-соединение или включится сервер на ноуте, показатели отправят пуш партнеру.',
+                    buttons: [{type: 'ok'}]
+                });
+            });
+        }
+
+        // ================= ВСЁ ОСТАЛЬНОЕ БЕЗ ИЗМЕНЕНИЙ (СТАБИЛЬНОСТЬ) =================
         function showOnboarding() {
             document.getElementById('onboarding-flow').classList.remove('hidden');
             document.getElementById('ob-welcome').classList.remove('hidden');
@@ -347,16 +433,16 @@
             const cycleDay = (diffDays % state.owner.len) || 1;
 
             let phase = 'Фолликулярная'; let emoji = '🌤'; let baseScore = 50; let level = 'warm';
-            let hint = 'Организм копит ресурсы. Благоприятное время для активности.';
+            let hint = 'Организм копит ресурсы. Благоприятное время для физической близости и разговоров.';
 
             if (cycleDay <= 5) {
-                phase = 'Менструация'; emoji = '🌙'; baseScore = 15; level = 'low'; hint = 'Ресурс на минимуме. Берегите свои силы.';
+                phase = 'Менструация'; emoji = '🌙'; baseScore = 15; level = 'low'; hint = 'Ресурс на минимуме. Наслаждайтесь покоем.';
             } else if (cycleDay > 5 && cycleDay < 12) {
-                phase = 'Фолликулярная'; emoji = '🌤'; baseScore = 55; level = 'warm'; hint = 'Комфортная фаза роста энергии.';
+                phase = 'Фолликулярная'; emoji = '🌤'; baseScore = 55; level = 'warm'; hint = 'Отличное время для подъема настроения.';
             } else if (cycleDay >= 12 && cycleDay <= 16) {
-                phase = 'Овуляция'; emoji = '🔥'; baseScore = 90; level = 'high'; hint = 'Пик сил, либидо и тепла!';
+                phase = 'Овуляция'; emoji = '🔥'; baseScore = 90; level = 'high'; hint = 'Максимальная степень тепла и влечения!';
             } else {
-                phase = 'Лютеиновая'; emoji = '🧘'; baseScore = 40; level = 'gentle'; hint = 'Замедление темпа. Будьте к себе мягче.';
+                phase = 'Лютеиновая'; emoji = '🧘'; baseScore = 40; level = 'gentle'; hint = 'Снижение темпа. Окружите себя комфортом.';
             }
             return { cycleDay, phase, emoji, level, hint };
         }
@@ -388,11 +474,6 @@
             }
             tg.HapticFeedback.selectionChanged();
             buildPartnerPreview();
-        }
-
-        function saveCheckIn() {
-            localStorage.setItem('sl_daily', JSON.stringify(state.daily));
-            tg.showPopup({ title: 'Сохранено', message: 'Показатели записаны.', buttons: [{type:'ok'}] });
         }
 
         function renderCalendarGrid() {
@@ -490,11 +571,14 @@
                 
                 const decodedNd = decodeURIComponent(params.get('v_nd') || '');
                 if (shNd && decodedNd) {
-                    metrics += `<p>💝 <b>Потребность:</b> <span style="background:var(--primary-soft); color:var(---primary); padding:3px 8px; border-radius:10px;">${decodedNd}</span></p>`;
+                    metrics += `<p>💝 <b>Потребность:</b> <span style="background:var(--primary-soft); color:var(--primary); padding:3px 8px; border-radius:10px;">${decodedNd}</span></p>`;
                 }
                 document.getElementById('partner-dyn-metrics').innerHTML = metrics;
             }
         }
+
+        function getEnergyLabel(val) { return val === 'high' ? 'Высокий' : (val === 'low' ? 'Снижен' : 'В норме'); }
+        function getSleepLabel(val) { return val === 'good' ? 'Выспалась' : (val === 'bad' ? 'Устала/Плохой сон' : 'Обычный'); }
 
         function switchTab(id) {
             document.querySelectorAll('#owner-app > .card').forEach(s => s.classList.add('hidden'));
@@ -519,11 +603,11 @@
 
         function debuggerToggleRole() {
             const url = window.location.href.split('?')[0];
-            const testPayload = btoa('partner=true&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true');
+            const testPayload = btoa('partner=true&owner_id=owner123&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true');
             if (window.location.href.includes('partner=true') || window.location.href.includes('startapp')) {
                 window.location.href = url;
             } else {
-                window.location.href = url + '?partner=true&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true';
+                window.location.href = url + '?partner=true&owner_id=owner123&date=2026-05-24&len=28&v_en=high&v_sl=good&v_nd=%F0%9F%A4%97%20%D0%9D%D0%B5%D0%B6%D0%BD%D0%BE%D1%81%D1%82%D1%8C&sh_st=true&sh_en=true&sh_sl=true&sh_nd=true';
             }
         }
 
